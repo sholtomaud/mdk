@@ -50,7 +50,7 @@ const server = http.createServer(async (req, res) => {
     const socraticAnswers = params.get('socratic_answers') ?? '';
     const correctionJson  = params.get('correction_json') ?? '';
 
-    if (!message) {
+    if (!message && !socraticAnswers && !correctionJson) {
       res.writeHead(400);
       res.end('message param required');
       return;

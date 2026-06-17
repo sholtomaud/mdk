@@ -108,6 +108,13 @@ const SYSML_SCHEMA = {
           ownedFeature:  { type: 'array', items: { type: 'object', properties: { '@id': { type: 'string' } }, required: ['@id'] } },
           sourceFeature: { type: 'object', properties: { '@id': { type: 'string' } }, required: ['@id'] },
           targetFeature: { type: 'object', properties: { '@id': { type: 'string' } }, required: ['@id'] },
+          bgMapping: {
+            type: 'object',
+            properties: {
+              elementType: { type: 'string', enum: ['Se','Sf','R','C','I','TF','GY','J0','J1'] },
+              parameter:   { type: 'number' },
+            },
+          },
         },
         required: ['@type','@id','name'],
       },
@@ -187,7 +194,27 @@ function systemPromptForDomain(domain: GenerateModelOpts['domain'], opts: Genera
     const socraticSection = opts.socratic_answers
       ? `\n\nThe user has provided these answers to missing parameters:\n${opts.socratic_answers}`
       : '';
-    return `You are an expert SysML v2 modelling assistant for MDK. Given a system description, generate a SysML v2 Package JSON with PartUsages, PortUsages, FlowConnectionUsages, and RequirementUsages. Ensure connections are traceable and ports are properly referenced. If physical parameters are missing, include a "missing_parameters" array of objects with fields: element_name, parameter, unit, reason.${correctionSection}${socraticSection}`;
+    return `You are an expert SysML v2 modelling assistant for MDK. Given a system description, generate a SysML v2 Package JSON with PartUsages, PortUsages, FlowConnectionUsages, and RequirementUsages.
+
+CRITICAL — bgMapping on every PartUsage:
+Every PartUsage MUST include a "bgMapping" object with "elementType" chosen from:
+  Se  = effort source (voltage source, pressure source, rainfall input, gravity head)
+  Sf  = flow source (current source, pump flow, constant mass flow)
+  R   = resistor / dissipator (resistor, pipe friction, evaporation loss, damper)
+  C   = capacitor / storage (capacitor, tank, spring, soil water store)
+  I   = inertia (inductor, mass, fluid inertia)
+  J0  = 0-junction (equal effort node)
+  J1  = 1-junction (equal flow node)
+Also set "parameter" in bgMapping to the numeric value for the element (resistance, capacitance, etc).
+
+Domain mapping examples:
+  Electrical: voltage source=Se, resistor=R, capacitor=C, inductor=I
+  Hydraulic:  pump=Sf, pipe=R, tank=C
+  Mechanical: force source=Se, friction=R, spring=C, mass=I
+  Hydrological: rainfall=Se, evapotranspiration=R, soil water store=C
+
+Use sourceFeature/targetFeature on FlowConnectionUsage to reference port @id values.
+If physical parameter values are unknown, include a "missing_parameters" array.${correctionSection}${socraticSection}`;
   }
   if (domain === 'bondgraph') {
     return `You are an expert Bond Graph modelling assistant for MDK. Generate a valid Bond Graph JSON model. Elements must have correct types (Se/Sf/R/C/I/TF/GY/J0/J1). Ensure causal consistency: every junction must have exactly one effort-setting bond.`;

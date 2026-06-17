@@ -144,7 +144,7 @@ mcp-server-http: build ## Run MDK MCP server on HTTP for local testing (PORT=300
 		-p 3001:3001 \
 		$(IMAGE_MDK) sh -c 'node packages/mcp-server/dist/index.js --transport http'
 
-demo: build ## Run MDK DSEE demo on http://localhost:3000 (requires GEMINI_API_KEY)
+demo: stop build ## Run MDK DSEE demo on http://localhost:3000 (requires GEMINI_API_KEY)
 	$(CONTAINER_BIN) run --init --rm \
 		-v "$(PWD):$(WORKDIR)" \
 		-w $(WORKDIR) \

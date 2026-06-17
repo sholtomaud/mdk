@@ -146,16 +146,22 @@ export const PartUsage: z.ZodType<PartUsage, z.ZodTypeDef, any> = SysmlBase.exte
  * Directed flow between ports of two PartUsages.
  * Maps to a BG bond (power bond) between the source port junction
  * and the target port junction.
+ *
+ * LLMs targeting SysML v2 PSM JSON emit `sourceFeature`/`targetFeature`
+ * (singular object) instead of `source`/`target` (array). The preprocess
+ * step normalises both naming conventions and wraps singletons into arrays.
  */
-export const FlowConnectionUsage = SysmlBase.extend({
+const FlowConnectionUsageShape = SysmlBase.extend({
   '@type': z.literal('FlowConnectionUsage'),
-  source:   z.array(SysmlRef).min(1),   // source port(s)
-  target:   z.array(SysmlRef).min(1),   // target port(s)
-  itemFlow: SysmlRef.optional(),         // ref to ItemDefinition
+  source:   z.array(SysmlRef).min(1),
+  target:   z.array(SysmlRef).min(1),
+  itemFlow: SysmlRef.optional(),
   bgMapping: z.object({
     bondType: z.enum(['power_bond', 'InformationBond']).default('power_bond'),
   }).optional(),
 });
+
+export const FlowConnectionUsage = FlowConnectionUsageShape;
 
 /* ── Requirements (T13.1) ───────────────────────────────────────────── */
 
@@ -200,17 +206,34 @@ export const SysmlElement: z.ZodType<SysmlElement, z.ZodTypeDef, any> = z.lazy((
   PortUsage,
   PartDefinition as any,
   PartUsage as any,
-  FlowConnectionUsage,
+  FlowConnectionUsageShape,   // use the raw shape — normalization happens at package level
   RequirementUsage,
   RequirementDefinition,
 ]));
+
+function normaliseFlowConn(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw;
+  const r = raw as Record<string, unknown>;
+  if (r['@type'] !== 'FlowConnectionUsage') return raw;
+  const out: Record<string, unknown> = { ...r };
+  for (const [alias, canonical] of [['sourceFeature', 'source'], ['targetFeature', 'target']] as const) {
+    if (out[alias] !== undefined && out[canonical] === undefined) out[canonical] = out[alias];
+  }
+  for (const field of ['source', 'target'] as const) {
+    if (out[field] !== undefined && !Array.isArray(out[field])) out[field] = [out[field]];
+  }
+  return out;
+}
 
 export const SysmlPackage = z.object({
   '@id':       z.string().min(1),
   '@type':     z.literal('Package'),
   name:        z.string().optional(),
   description: z.string().optional(),
-  elements:    z.array(SysmlElement),
+  elements:    z.preprocess(
+    (arr) => Array.isArray(arr) ? arr.map(normaliseFlowConn) : arr,
+    z.array(SysmlElement),
+  ),
 }).refine(
   pkg => pkg.elements.some(e => e['@type'] === 'FlowConnectionUsage'),
   { message: 'SysmlPackage must contain at least one FlowConnectionUsage — a model with no flow connections has no bonds and cannot be transpiled' },

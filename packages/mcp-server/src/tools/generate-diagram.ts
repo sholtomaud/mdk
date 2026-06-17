@@ -19,6 +19,23 @@ interface OdumEdge { id?: string; origin: string; target: string; logic?: string
 
 /* ── Utilities ────────────────────────────────────────────────────── */
 
+/** Normalise a FlowConnectionUsage element so source/target are always arrays.
+ *  LLMs emit sourceFeature/targetFeature (single objects) instead of source/target (arrays). */
+function normaliseFlow(f: Elem): Elem {
+  const out: Elem = { ...f };
+  for (const [alias, canonical] of [['sourceFeature', 'source'], ['targetFeature', 'target']] as const) {
+    if (out[canonical] === undefined && out[alias] !== undefined) {
+      out[canonical] = out[alias];
+    }
+  }
+  for (const field of ['source', 'target'] as const) {
+    if (out[field] !== undefined && !Array.isArray(out[field])) {
+      out[field] = [out[field]];
+    }
+  }
+  return out;
+}
+
 function san(s: string): string {
   return String(s).replace(/\W/g, '_').toLowerCase();
 }
@@ -104,7 +121,7 @@ function buildIBD(elements: Elem[], packageName: string): string {
   const lines: string[] = [`%%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '13px' }}}%%`, `graph LR`, `  %% IBD: ${packageName}`];
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
-  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage');
+  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
 
   for (const p of parts) {
     const name = String(p.name ?? p['@id']);
@@ -142,7 +159,7 @@ function buildPAR(elements: Elem[]): string {
   const lines: string[] = [`%%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '13px' }}}%%`, `graph TD`];
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
-  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage');
+  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
 
   for (const p of parts) {
     const name = String(p.name ?? p['@id']);
@@ -210,7 +227,7 @@ function buildSEQ(elements: Elem[], packageName: string): string {
   const lines: string[] = [`sequenceDiagram`, `  %% ${packageName}`];
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
-  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage');
+  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
 
   for (const p of parts) {
     const name = String(p.name ?? p['@id']);
@@ -241,7 +258,7 @@ function buildACT(elements: Elem[]): string {
   const lines: string[] = [`%%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '13px' }}}%%`, `graph TD`];
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
-  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage');
+  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
 
   for (const p of parts) {
     const name = String(p.name ?? p['@id']);
@@ -282,7 +299,7 @@ function buildUC(elements: Elem[], packageName: string): string {
   const lines: string[] = [`%%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '13px' }}}%%`, `graph LR`];
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
-  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage');
+  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
 
   for (const p of parts) {
     const name = String(p.name ?? p['@id']);
@@ -319,7 +336,7 @@ function buildSTM(elements: Elem[]): string {
   const lines: string[] = [`stateDiagram-v2`];
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
-  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage');
+  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
 
   const storageTypes = new Set(['C', 'I']);
   const sourceTypes = new Set(['Se', 'Sf']);
@@ -388,7 +405,7 @@ function buildESL(elements: Elem[]): string {
   const lines: string[] = [`%%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '13px' }}}%%`, `graph LR`];
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
-  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage');
+  const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
 
   // Determine sinks (R elements with no outbound flow to storage)
   const outflowTargets = new Set<string>();
@@ -584,7 +601,7 @@ export async function generateDiagram(
           }
         }
 
-        const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage');
+        const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
         let bIdx = 1;
         for (const f of flows) {
           const src = (f.source as Array<{ '@id': string }>)[0]?.['@id'] ?? '';

@@ -336,7 +336,8 @@
 
     let history = [];
     let currentReport = null; // accumulates during streaming
-    let lastSysmlJson = null; // for Socratic loop resume
+    let lastSysmlJson = null;   // for Socratic loop resume
+    let lastUserMessage = '';   // original message before socratic pause
 
     function suggest(el) {
       document.getElementById('input').value = el.textContent.trim();
@@ -899,8 +900,9 @@
     async function sendMessage(socraticAnswers = null) {
       const input = document.getElementById('input');
       const btn   = document.getElementById('send');
-      const message = socraticAnswers ? (history[history.length - 2]?.parts[0]?.text ?? '') : input.value.trim();
+      const message = socraticAnswers ? lastUserMessage : input.value.trim();
       if (!message && !socraticAnswers) return;
+      if (!socraticAnswers) lastUserMessage = message;
 
       if (!socraticAnswers) {
         input.value = '';
