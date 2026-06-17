@@ -1,0 +1,23 @@
+{
+  "name": "mdk",
+  "version": "0.1.0",
+  "description": "MDK CLI — Model-Driven Kit command-line tool",
+  "bin": {
+    "mdk": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["bond-graph", "systems-engineering", "cli"],
+  "license": "MIT",
+  "dependencies": {
+    "@mdk/core": "*",
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.5"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "mdk": {
+    "schemaVersion": "1.0",
+    "vendor": "Arduino",
+    "model_number": "Uno R3",
+    "description": "Arduino Uno R3 microcontroller. Digital I/O and PWM ports modelled as effort sources (Se) for actuator drive signals.",
+    "datasheet_url": "https://docs.arduino.cc/resources/datasheets/A000066-datasheet.pdf",
+    "category": "microcontroller"
+  },
+  "elements": [
+    {
+      "name": "digital_out_5v",
+      "bgType": "Se",
+      "domain": "electrical",
+      "parameters": { "value": 5.0, "unit": "V", "notes": "Digital HIGH output voltage (5V logic)" }
+    },
+    {
+      "name": "pwm_supply",
+      "bgType": "Se",
+      "domain": "electrical",
+      "parameters": { "value": 5.0, "unit": "V", "notes": "PWM output — modulate via parameter; frequency 490 Hz (pins 3/9/10/11) or 980 Hz (pins 5/6)" }
+    },
+    {
+      "name": "supply_resistance",
+      "bgType": "R",
+      "domain": "electrical",
+      "parameters": { "value": 40.0, "unit": "Ω", "notes": "Approximate output impedance for current-limiting model" }
+    }
+  ]
+}

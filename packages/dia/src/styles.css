@@ -1,0 +1,321 @@
+/* MDK Diagram Editor — migrated from gssk-dia, extended for Bond Graph domain */
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --bg-color: #f1f5f9;
+  --grid-color: #cbd5e1;
+  --primary-color: #3b82f6;
+  --secondary-color: #10b981;
+  --text-color: #1e293b;
+  --panel-bg: rgba(255, 255, 255, 0.95);
+  --panel-border: #e2e8f0;
+  --selection-color: #3b82f6;
+  --edge-color: #475569;
+  --node-label-color: #475569;
+  --panel-header-color: #64748b;
+  --bond-color: #1e40af;
+}
+
+:host([theme="dark"]) {
+  --bg-color: #020617;
+  --grid-color: #1e293b;
+  --text-color: #f1f5f9;
+  --panel-bg: rgba(30, 41, 59, 0.95);
+  --panel-border: #334155;
+  --edge-color: #94a3b8;
+  --node-label-color: #cbd5e1;
+  --panel-header-color: #94a3b8;
+  --bond-color: #60a5fa;
+}
+
+.editor-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
+  position: relative;
+}
+
+#canvas-container {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+  background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
+  background-size: 20px 20px;
+  cursor: grab;
+}
+
+#canvas-container:active {
+  cursor: grabbing;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+  overflow: visible;
+}
+
+.panel {
+  position: absolute;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  padding: 12px;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  cursor: move;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--panel-header-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 8px;
+}
+
+.palette {
+  top: 20px;
+  left: 20px;
+  width: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.domain-btn {
+  width: 100%;
+  padding: 4px 2px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  color: var(--text-color);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.domain-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.domain-separator {
+  height: 1px;
+  background: var(--panel-border);
+  margin: 4px 0;
+}
+
+.property-panel {
+  bottom: 20px;
+  right: 20px;
+  width: 240px;
+}
+
+.palette-item {
+  width: 44px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  background: var(--panel-bg);
+  transition: all 0.2s;
+  font-weight: bold;
+  color: var(--text-color);
+  font-size: 0.8rem;
+}
+
+.palette-item:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.palette-item[data-domain="bondgraph"] {
+  border-color: var(--bond-color);
+  color: var(--bond-color);
+  font-size: 0.75rem;
+}
+
+.palette-item[data-domain="bondgraph"]:hover {
+  background: var(--bond-color);
+  color: white;
+}
+
+.node-group {
+  transition: filter 0.2s;
+}
+
+.node-group:hover {
+  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.5));
+}
+
+.node-group.selected use {
+  stroke: var(--selection-color);
+  stroke-width: 2px;
+}
+
+.edge-group .main-path {
+  transition: stroke 0.2s, stroke-width 0.2s;
+  cursor: pointer;
+}
+
+.edge-group:hover .main-path {
+  stroke: var(--primary-color);
+  stroke-width: 3px;
+}
+
+.edge-group.selected .main-path {
+  stroke: var(--selection-color);
+  stroke-width: 4px;
+}
+
+/* Bond Graph bond styling */
+.bond-group .bond-line {
+  stroke: var(--bond-color);
+  stroke-width: 2.5;
+  cursor: pointer;
+  transition: stroke-width 0.2s;
+}
+
+.bond-group:hover .bond-line {
+  stroke-width: 4;
+}
+
+.bond-group.selected .bond-line {
+  stroke: var(--selection-color);
+  stroke-width: 4;
+}
+
+/* Causal stroke — perpendicular line on the effort-setting side */
+.causal-stroke {
+  stroke: var(--bond-color);
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+.edge-group .hit-path {
+  cursor: pointer;
+}
+
+.node-label {
+  font-size: 12px;
+  fill: var(--node-label-color);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.node-port {
+  fill: var(--panel-bg);
+  stroke: var(--panel-border);
+  stroke-width: 1px;
+  opacity: 0;
+  transition: all 0.2s;
+  cursor: crosshair;
+}
+
+.node-group:hover .node-port {
+  opacity: 1;
+}
+
+.node-port:hover {
+  fill: var(--primary-color);
+  stroke: var(--primary-color);
+}
+
+.handle-line {
+  stroke: var(--primary-color);
+  stroke-width: 1;
+  stroke-dasharray: 2,2;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.control-handle {
+  fill: var(--bg-color);
+  stroke: var(--primary-color);
+  stroke-width: 2;
+  cursor: grab;
+}
+
+.control-handle:hover {
+  fill: var(--primary-color);
+}
+
+.hidden {
+  display: none !important;
+}
+
+button.toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+  color: #94a3b8;
+}
+
+button.toggle:hover {
+  color: #ef4444;
+}
+
+input[type="text"], input[type="number"], select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  background: var(--panel-bg);
+  color: var(--text-color);
+}
+
+label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.prop-group {
+  margin-bottom: 12px;
+}
+
+:host([invalid]) #canvas-container {
+  box-shadow: inset 0 0 0 4px rgba(239, 68, 68, 0.4);
+}
+
+:host([invalid]) .editor-container {
+  outline: 2px solid #ef4444;
+  outline-offset: -2px;
+}
+
+.resize-handle {
+  cursor: nwse-resize;
+}
+
+.boundary-group rect {
+  cursor: grab;
+}

@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Superseded by packages/sim-kernel/schema/mdk.schema.json (T0.3). Kept for reference; new tooling should use the unified MDK schema.",
+  "title": "GSSK Model (legacy)",
+  "description": "Legacy schema for GSSK Odum ESL models. Superseded by the unified MDK schema at packages/sim-kernel/schema/mdk.schema.json which covers both Odum ESL and Bond Graph domains.",
+  "type": "object",
+  "required": [
+    "nodes"
+  ],
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "value"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "storage",
+              "source",
+              "sink",
+              "constant"
+            ]
+          },
+          "value": {
+            "type": "number"
+          },
+          "visual": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "origin",
+          "target",
+          "logic",
+          "params"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "logic": {
+            "type": "string",
+            "enum": [
+              "constant",
+              "linear",
+              "interaction",
+              "limit",
+              "threshold"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "k"
+            ],
+            "properties": {
+              "k": {
+                "type": "number"
+              },
+              "control_node": {
+                "type": "string"
+              },
+              "threshold": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          },
+          "visual": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "t_start": {
+          "type": "number",
+          "default": 0.0
+        },
+        "t_end": {
+          "type": "number",
+          "default": 100.0
+        },
+        "dt": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 0.1
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "euler",
+            "rk4"
+          ],
+          "default": "euler"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

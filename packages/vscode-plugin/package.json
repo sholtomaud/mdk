@@ -1,0 +1,17 @@
+{
+  "name": "@mdk/ts-plugin",
+  "version": "0.1.0",
+  "description": "TypeScript Language Server plugin for @mdk/core — hover docs and domain diagnostics",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "keywords": ["mdk", "typescript-plugin", "bond-graph", "language-server"],
+  "license": "MIT",
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

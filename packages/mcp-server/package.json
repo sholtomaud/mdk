@@ -1,0 +1,27 @@
+{
+  "name": "@mdk/mcp-server",
+  "version": "0.1.0",
+  "description": "MDK MCP server — Bond Graph and Odum ESL model tools via Model Context Protocol",
+  "main": "dist/index.js",
+  "bin": {
+    "mdk-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "esbuild src/*.ts src/tools/*.ts src/transport/*.ts --platform=node --outdir=dist --format=cjs --sourcemap",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["bond-graph", "odum-esl", "mcp", "systems-engineering"],
+  "license": "MIT",
+  "dependencies": {
+    "@mdk/core": "*",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "esbuild": "^0.21.0",
+    "vitest": "^1.2.2",
+    "@types/node": "^22.0.0",
+    "@types/aws-lambda": "^8.10.136"
+  }
+}

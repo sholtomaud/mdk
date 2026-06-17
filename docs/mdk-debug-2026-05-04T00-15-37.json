@@ -1,0 +1,655 @@
+{
+  "timestamp": "2026-05-04T00:14:21.758Z",
+  "prompt": "Hydraulic cylinder with pump, pipe resistance and piston",
+  "mdk_version": "0.1.0",
+  "pipeline": [
+    {
+      "type": "status",
+      "actor": "LLM",
+      "message": "Generating SysML model…"
+    },
+    {
+      "type": "tool",
+      "name": "create_model",
+      "args": {
+        "description": "Hydraulic cylinder with pump, pipe resistance and piston",
+        "domain": "sysml"
+      },
+      "result": {
+        "model": {
+          "@id": "f2dbb43b-023b-4afa-97d0-b514bb7a21b9",
+          "@type": "Package",
+          "name": "HydraulicCylinderSystem",
+          "elements": [
+            {
+              "@id": "bc5ff617-ce1a-4e90-b147-10c6f69b41b3",
+              "@type": "PartUsage",
+              "name": "HydraulicPump",
+              "ownedFeature": [
+                {
+                  "@id": "7b4e08c3-c0f4-4e48-bd60-ee89d41969e7"
+                }
+              ],
+              "isComposite": true,
+              "bgMapping": {
+                "elementType": "Se"
+              }
+            },
+            {
+              "@id": "7b4e08c3-c0f4-4e48-bd60-ee89d41969e7",
+              "@type": "PortUsage",
+              "name": "pump_out",
+              "direction": "inout",
+              "bgMapping": {
+                "junctionType": "J1"
+              }
+            },
+            {
+              "@id": "6801ebab-6925-4826-b94d-2538a0fa358f",
+              "@type": "PartUsage",
+              "name": "PipeResistance",
+              "ownedFeature": [
+                {
+                  "@id": "b84656fe-17a3-451e-9a19-8acb300e0edd"
+                }
+              ],
+              "isComposite": true,
+              "bgMapping": {
+                "elementType": "R"
+              }
+            },
+            {
+              "@id": "b84656fe-17a3-451e-9a19-8acb300e0edd",
+              "@type": "PortUsage",
+              "name": "pipe_port",
+              "direction": "inout",
+              "bgMapping": {
+                "junctionType": "J1"
+              }
+            },
+            {
+              "@id": "d9308bc7-2d4c-4b9d-95c3-57d903ea1ef3",
+              "@type": "PartUsage",
+              "name": "CylinderCompliance",
+              "ownedFeature": [
+                {
+                  "@id": "b2717107-1470-4e8d-bfb5-b55a218e4169"
+                }
+              ],
+              "isComposite": true,
+              "bgMapping": {
+                "elementType": "C"
+              }
+            },
+            {
+              "@id": "b2717107-1470-4e8d-bfb5-b55a218e4169",
+              "@type": "PortUsage",
+              "name": "cyl_port",
+              "direction": "inout",
+              "bgMapping": {
+                "junctionType": "J0"
+              }
+            },
+            {
+              "@id": "7635ce42-cdae-40f0-bda1-a7e99196f483",
+              "@type": "PartUsage",
+              "name": "PistonArea",
+              "ownedFeature": [
+                {
+                  "@id": "345cf55d-6913-447c-80d4-99881c309f78"
+                },
+                {
+                  "@id": "8b9adebb-ff77-46f0-9d26-5a9e4430585d"
+                }
+              ],
+              "isComposite": true,
+              "bgMapping": {
+                "elementType": "TF"
+              }
+            },
+            {
+              "@id": "345cf55d-6913-447c-80d4-99881c309f78",
+              "@type": "PortUsage",
+              "name": "tf_hyd",
+              "direction": "inout",
+              "bgMapping": {
+                "junctionType": "J0"
+              }
+            },
+            {
+              "@id": "8b9adebb-ff77-46f0-9d26-5a9e4430585d",
+              "@type": "PortUsage",
+              "name": "tf_mech",
+              "direction": "inout",
+              "bgMapping": {
+                "junctionType": "J1"
+              }
+            },
+            {
+              "@id": "3c8c48ed-707d-4e01-a3cb-7807c13e1ad8",
+              "@type": "PartUsage",
+              "name": "PistonMass",
+              "ownedFeature": [
+                {
+                  "@id": "04a5a2f3-700b-4457-bdb9-ce4a35217d58"
+                }
+              ],
+              "isComposite": true,
+              "bgMapping": {
+                "elementType": "I"
+              }
+            },
+            {
+              "@id": "04a5a2f3-700b-4457-bdb9-ce4a35217d58",
+              "@type": "PortUsage",
+              "name": "piston_port",
+              "direction": "inout",
+              "bgMapping": {
+                "junctionType": "J1"
+              }
+            },
+            {
+              "@id": "c09132ef-1f81-42ba-b98b-8637098378e8",
+              "@type": "PartUsage",
+              "name": "PistonFriction",
+              "ownedFeature": [
+                {
+                  "@id": "34e1da96-c996-44b2-b9c1-45263c07d655"
+                }
+              ],
+              "isComposite": true,
+              "bgMapping": {
+                "elementType": "R"
+              }
+            },
+            {
+              "@id": "34e1da96-c996-44b2-b9c1-45263c07d655",
+              "@type": "PortUsage",
+              "name": "friction_port",
+              "direction": "inout",
+              "bgMapping": {
+                "junctionType": "J1"
+              }
+            },
+            {
+              "@id": "3e6231a3-ab2e-4c48-b8c8-02173070f675",
+              "@type": "PartUsage",
+              "name": "HydraulicFlowJunction",
+              "isComposite": true,
+              "bgMapping": {
+                "elementType": "J1"
+              }
+            },
+            {
+              "@id": "3361c7b9-0d82-4899-a5b6-5a3fe2be696d",
+              "@type": "PartUsage",
+              "name": "HydraulicPressureJunction",
+              "isComposite": true,
+              "bgMapping": {
+                "elementType": "J0"
+              }
+            },
+            {
+              "@id": "5db68fe7-7ab9-4f87-b674-bc9b57652ed0",
+              "@type": "PartUsage",
+              "name": "MechanicalVelocityJunction",
+              "isComposite": true,
+              "bgMapping": {
+                "elementType": "J1"
+              }
+            },
+            {
+              "@id": "7612198c-42fc-47ae-9b7d-e87244d10679",
+              "@type": "FlowConnectionUsage",
+              "name": "pump_to_j1h",
+              "source": [
+                {
+                  "@id": "7b4e08c3-c0f4-4e48-bd60-ee89d41969e7"
+                }
+              ],
+              "target": [
+                {
+                  "@id": "3e6231a3-ab2e-4c48-b8c8-02173070f675"
+                }
+              ]
+            },
+            {
+              "@id": "7499aa58-faea-4611-a9ed-d7f6cf2a57ee",
+              "@type": "FlowConnectionUsage",
+              "name": "pipe_to_j1h",
+              "source": [
+                {
+                  "@id": "b84656fe-17a3-451e-9a19-8acb300e0edd"
+                }
+              ],
+              "target": [
+                {
+                  "@id": "3e6231a3-ab2e-4c48-b8c8-02173070f675"
+                }
+              ]
+            },
+            {
+              "@id": "cf9c6dc8-81a2-4135-9e45-578ef4c810ab",
+              "@type": "FlowConnectionUsage",
+              "name": "j1h_to_j0h",
+              "source": [
+                {
+                  "@id": "3e6231a3-ab2e-4c48-b8c8-02173070f675"
+                }
+              ],
+              "target": [
+                {
+                  "@id": "3361c7b9-0d82-4899-a5b6-5a3fe2be696d"
+                }
+              ]
+            },
+            {
+              "@id": "4a457ad3-7e3e-4c23-b1dd-8ed219557859",
+              "@type": "FlowConnectionUsage",
+              "name": "cyl_to_j0h",
+              "source": [
+                {
+                  "@id": "b2717107-1470-4e8d-bfb5-b55a218e4169"
+                }
+              ],
+              "target": [
+                {
+                  "@id": "3361c7b9-0d82-4899-a5b6-5a3fe2be696d"
+                }
+              ]
+            },
+            {
+              "@id": "81efc4c8-a49f-4ec8-8926-acc57d8b2a7d",
+              "@type": "FlowConnectionUsage",
+              "name": "tf_to_j0h",
+              "source": [
+                {
+                  "@id": "345cf55d-6913-447c-80d4-99881c309f78"
+                }
+              ],
+              "target": [
+                {
+                  "@id": "3361c7b9-0d82-4899-a5b6-5a3fe2be696d"
+                }
+              ]
+            },
+            {
+              "@id": "c387074d-4e05-48df-b4aa-97fb8acf26d5",
+              "@type": "FlowConnectionUsage",
+              "name": "tf_to_j1m",
+              "source": [
+                {
+                  "@id": "8b9adebb-ff77-46f0-9d26-5a9e4430585d"
+                }
+              ],
+              "target": [
+                {
+                  "@id": "5db68fe7-7ab9-4f87-b674-bc9b57652ed0"
+                }
+              ]
+            },
+            {
+              "@id": "051d6065-112c-4c13-b0e2-ea72ce7c9722",
+              "@type": "FlowConnectionUsage",
+              "name": "piston_to_j1m",
+              "source": [
+                {
+                  "@id": "04a5a2f3-700b-4457-bdb9-ce4a35217d58"
+                }
+              ],
+              "target": [
+                {
+                  "@id": "5db68fe7-7ab9-4f87-b674-bc9b57652ed0"
+                }
+              ]
+            },
+            {
+              "@id": "708edf59-fe06-4589-a318-2f40547cb7cc",
+              "@type": "FlowConnectionUsage",
+              "name": "friction_to_j1m",
+              "source": [
+                {
+                  "@id": "34e1da96-c996-44b2-b9c1-45263c07d655"
+                }
+              ],
+              "target": [
+                {
+                  "@id": "5db68fe7-7ab9-4f87-b674-bc9b57652ed0"
+                }
+              ]
+            }
+          ]
+        },
+        "missing_parameters": [],
+        "stages": [
+          {
+            "name": "Gemini responseJsonSchema (gemini-3-flash-preview)",
+            "pass": true,
+            "note": "sysml schema enforced by API"
+          },
+          {
+            "name": "JSON.parse",
+            "pass": true
+          },
+          {
+            "name": "Zod SysmlPackage",
+            "pass": true,
+            "issues": []
+          },
+          {
+            "name": "ID Normalization",
+            "pass": true,
+            "note": "Mapped LLM strings to valid UUIDs"
+          }
+        ]
+      }
+    },
+    {
+      "type": "status",
+      "actor": "MDK",
+      "message": "Transpiling SysML → Bond Graph…"
+    },
+    {
+      "type": "tool",
+      "name": "transpile_sysml",
+      "args": {
+        "sysml_json": "(sysml)"
+      },
+      "result": {
+        "bondGraph": {
+          "schemaVersion": "1.0",
+          "domain": "bondgraph",
+          "elements": [
+            {
+              "id": 1,
+              "name": "J1_pump_out",
+              "type": "J1",
+              "parameter": 0
+            },
+            {
+              "id": 2,
+              "name": "J1_pipe_port",
+              "type": "J1",
+              "parameter": 0
+            },
+            {
+              "id": 3,
+              "name": "J0_cyl_port",
+              "type": "J0",
+              "parameter": 0
+            },
+            {
+              "id": 4,
+              "name": "J0_tf_hyd",
+              "type": "J0",
+              "parameter": 0
+            },
+            {
+              "id": 5,
+              "name": "J1_tf_mech",
+              "type": "J1",
+              "parameter": 0
+            },
+            {
+              "id": 6,
+              "name": "J1_piston_port",
+              "type": "J1",
+              "parameter": 0
+            },
+            {
+              "id": 7,
+              "name": "J1_friction_port",
+              "type": "J1",
+              "parameter": 0
+            },
+            {
+              "id": 8,
+              "name": "HydraulicPump",
+              "type": "Se",
+              "parameter": 1
+            },
+            {
+              "id": 9,
+              "name": "PipeResistance",
+              "type": "R",
+              "parameter": 1
+            },
+            {
+              "id": 10,
+              "name": "CylinderCompliance",
+              "type": "C",
+              "parameter": 1
+            },
+            {
+              "id": 11,
+              "name": "PistonArea",
+              "type": "TF",
+              "parameter": 1
+            },
+            {
+              "id": 12,
+              "name": "J1_PistonArea",
+              "type": "J1",
+              "parameter": 0
+            },
+            {
+              "id": 13,
+              "name": "PistonMass",
+              "type": "I",
+              "parameter": 1
+            },
+            {
+              "id": 14,
+              "name": "PistonFriction",
+              "type": "R",
+              "parameter": 1
+            }
+          ],
+          "bonds": [
+            {
+              "id": 15,
+              "source": 8,
+              "target": 1,
+              "type": "power_bond"
+            },
+            {
+              "id": 16,
+              "source": 9,
+              "target": 2,
+              "type": "power_bond"
+            },
+            {
+              "id": 17,
+              "source": 10,
+              "target": 3,
+              "type": "power_bond"
+            },
+            {
+              "id": 18,
+              "source": 11,
+              "target": 12,
+              "type": "power_bond"
+            },
+            {
+              "id": 19,
+              "source": 4,
+              "target": 12,
+              "type": "power_bond"
+            },
+            {
+              "id": 20,
+              "source": 5,
+              "target": 12,
+              "type": "power_bond"
+            },
+            {
+              "id": 21,
+              "source": 13,
+              "target": 6,
+              "type": "power_bond"
+            },
+            {
+              "id": 22,
+              "source": 14,
+              "target": 7,
+              "type": "power_bond"
+            }
+          ]
+        },
+        "element_count": 14,
+        "bond_count": 8,
+        "note": "Pass bondGraph to validate_model and run_simulation"
+      }
+    },
+    {
+      "type": "status",
+      "actor": "WASM",
+      "message": "Running SCAP causality check…"
+    },
+    {
+      "type": "tool",
+      "name": "validate_model",
+      "args": {},
+      "result": {
+        "valid": false,
+        "domain": "bondgraph",
+        "causality": {
+          "success": true,
+          "status": "OK",
+          "bonds": [
+            {
+              "id": 0,
+              "source_causality": "EFFORT_OUT",
+              "target_causality": "FLOW_OUT",
+              "source_name": "HydraulicPump",
+              "target_name": "J1_pump_out"
+            },
+            {
+              "id": 1,
+              "source_causality": "FLOW_OUT",
+              "target_causality": "EFFORT_OUT",
+              "source_name": "PipeResistance",
+              "target_name": "J1_pipe_port"
+            },
+            {
+              "id": 2,
+              "source_causality": "EFFORT_OUT",
+              "target_causality": "FLOW_OUT",
+              "source_name": "CylinderCompliance",
+              "target_name": "J0_cyl_port"
+            },
+            {
+              "id": 3,
+              "source_causality": "EFFORT_OUT",
+              "target_causality": "FLOW_OUT",
+              "source_name": "PistonArea",
+              "target_name": "J1_PistonArea"
+            },
+            {
+              "id": 4,
+              "source_causality": "FLOW_OUT",
+              "target_causality": "EFFORT_OUT",
+              "source_name": "J0_tf_hyd",
+              "target_name": "J1_PistonArea"
+            },
+            {
+              "id": 5,
+              "source_causality": "EFFORT_OUT",
+              "target_causality": "FLOW_OUT",
+              "source_name": "J1_tf_mech",
+              "target_name": "J1_PistonArea"
+            },
+            {
+              "id": 6,
+              "source_causality": "FLOW_OUT",
+              "target_causality": "EFFORT_OUT",
+              "source_name": "PistonMass",
+              "target_name": "J1_piston_port"
+            },
+            {
+              "id": 7,
+              "source_causality": "FLOW_OUT",
+              "target_causality": "EFFORT_OUT",
+              "source_name": "PistonFriction",
+              "target_name": "J1_friction_port"
+            }
+          ],
+          "diagnostics": []
+        },
+        "stages": [
+          {
+            "name": "JSON.parse",
+            "pass": true
+          },
+          {
+            "name": "Zod BondGraphModel",
+            "pass": true,
+            "issues": []
+          },
+          {
+            "name": "WASM BG causality assignment",
+            "pass": true,
+            "note": "8 bonds assigned",
+            "issues": []
+          },
+          {
+            "name": "BG semantic check",
+            "pass": false,
+            "issues": [
+              {
+                "path": "element id:1",
+                "message": "Junction 'J1_pump_out' (J1) has fewer than 2 bonds — junction is meaningless"
+              },
+              {
+                "path": "element id:2",
+                "message": "Junction 'J1_pipe_port' (J1) has fewer than 2 bonds — junction is meaningless"
+              },
+              {
+                "path": "element id:3",
+                "message": "Junction 'J0_cyl_port' (J0) has fewer than 2 bonds — junction is meaningless"
+              },
+              {
+                "path": "element id:4",
+                "message": "Junction 'J0_tf_hyd' (J0) has fewer than 2 bonds — junction is meaningless"
+              },
+              {
+                "path": "element id:5",
+                "message": "Junction 'J1_tf_mech' (J1) has fewer than 2 bonds — junction is meaningless"
+              },
+              {
+                "path": "element id:6",
+                "message": "Junction 'J1_piston_port' (J1) has fewer than 2 bonds — junction is meaningless"
+              },
+              {
+                "path": "element id:7",
+                "message": "Junction 'J1_friction_port' (J1) has fewer than 2 bonds — junction is meaningless"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "status",
+      "actor": "LLM",
+      "message": "SCAP failed — correcting model (attempt 2/3)…"
+    },
+    {
+      "type": "tool",
+      "name": "create_model",
+      "args": {
+        "description": "Hydraulic cylinder with pump, pipe resistance and piston",
+        "domain": "sysml",
+        "correction_json": "{\"@id\":\"f2dbb43b-023b-4afa-97d0-b514bb7a21b9\",\"@type\":\"Package\",\"name\":\"HydraulicCylinderSystem\",\"elements\":[{\"@id\":\"bc5ff617-ce1a-4e90-b147-10c6f69b41b3\",\"@type\":\"PartUsage\",\"name\":\"HydraulicPump\",\"ownedFeature\":[{\"@id\":\"7b4e08c3-c0f4-4e48-bd60-ee89d41969e7\"}],\"isComposite\":true,\"bgMapping\":{\"elementType\":\"Se\"}},{\"@id\":\"7b4e08c3-c0f4-4e48-bd60-ee89d41969e7\",\"@type\":\"PortUsage\",\"name\":\"pump_out\",\"direction\":\"inout\",\"bgMapping\":{\"junctionType\":\"J1\"}},{\"@id\":\"6801ebab-6925-4826-b94d-2538a0fa358f\",\"@type\":\"PartUsage\",\"name\":\"PipeResistance\",\"ownedFeature\":[{\"@id\":\"b84656fe-17a3-451e-9a19-8acb300e0edd\"}],\"isComposite\":true,\"bgMapping\":{\"elementType\":\"R\"}},{\"@id\":\"b84656fe-17a3-451e-9a19-8acb300e0edd\",\"@type\":\"PortUsage\",\"name\":\"pipe_port\",\"direction\":\"inout\",\"bgMapping\":{\"junctionType\":\"J1\"}},{\"@id\":\"d9308bc7-2d4c-4b9d-95c3-57d903ea1ef3\",\"@type\":\"PartUsage\",\"name\":\"CylinderCompliance\",\"ownedFeature\":[{\"@id\":\"b2717107-1470-4e8d-bfb5-b55a218e4169\"}],\"isComposite\":true,\"bgMapping\":{\"elementType\":\"C\"}},{\"@id\":\"b2717107-1470-4e8d-bfb5-b55a218e4169\",\"@type\":\"PortUsage\",\"name\":\"cyl_port\",\"direction\":\"inout\",\"bgMapping\":{\"junctionType\":\"J0\"}},{\"@id\":\"7635ce42-cdae-40f0-bda1-a7e99196f483\",\"@type\":\"PartUsage\",\"name\":\"PistonArea\",\"ownedFeature\":[{\"@id\":\"345cf55d-6913-447c-80d4-99881c309f78\"},{\"@id\":\"8b9adebb-ff77-46f0-9d26-5a9e4430585d\"}],\"isComposite\":true,\"bgMapping\":{\"elementType\":\"TF\"}},{\"@id\":\"345cf55d-6913-447c-80d4-99881c309f78\",\"@type\":\"PortUsage\",\"name\":\"tf_hyd\",\"direction\":\"inout\",\"bgMapping\":{\"junctionType\":\"J0\"}},{\"@id\":\"8b9adebb-ff77-46f0-9d26-5a9e4430585d\",\"@type\":\"PortUsage\",\"name\":\"tf_mech\",\"direction\":\"inout\",\"bgMapping\":{\"junctionType\":\"J1\"}},{\"@id\":\"3c8c48ed-707d-4e01-a3cb-7807c13e1ad8\",\"@type\":\"PartUsage\",\"name\":\"PistonMass\",\"ownedFeature\":[{\"@id\":\"04a5a2f3-700b-4457-bdb9-ce4a35217d58\"}],\"isComposite\":true,\"bgMapping\":{\"elementType\":\"I\"}},{\"@id\":\"04a5a2f3-700b-4457-bdb9-ce4a35217d58\",\"@type\":\"PortUsage\",\"name\":\"piston_port\",\"direction\":\"inout\",\"bgMapping\":{\"junctionType\":\"J1\"}},{\"@id\":\"c09132ef-1f81-42ba-b98b-8637098378e8\",\"@type\":\"PartUsage\",\"name\":\"PistonFriction\",\"ownedFeature\":[{\"@id\":\"34e1da96-c996-44b2-b9c1-45263c07d655\"}],\"isComposite\":true,\"bgMapping\":{\"elementType\":\"R\"}},{\"@id\":\"34e1da96-c996-44b2-b9c1-45263c07d655\",\"@type\":\"PortUsage\",\"name\":\"friction_port\",\"direction\":\"inout\",\"bgMapping\":{\"junctionType\":\"J1\"}},{\"@id\":\"3e6231a3-ab2e-4c48-b8c8-02173070f675\",\"@type\":\"PartUsage\",\"name\":\"HydraulicFlowJunction\",\"isComposite\":true,\"bgMapping\":{\"elementType\":\"J1\"}},{\"@id\":\"3361c7b9-0d82-4899-a5b6-5a3fe2be696d\",\"@type\":\"PartUsage\",\"name\":\"HydraulicPressureJunction\",\"isComposite\":true,\"bgMapping\":{\"elementType\":\"J0\"}},{\"@id\":\"5db68fe7-7ab9-4f87-b674-bc9b57652ed0\",\"@type\":\"PartUsage\",\"name\":\"MechanicalVelocityJunction\",\"isComposite\":true,\"bgMapping\":{\"elementType\":\"J1\"}},{\"@id\":\"7612198c-42fc-47ae-9b7d-e87244d10679\",\"@type\":\"FlowConnectionUsage\",\"name\":\"pump_to_j1h\",\"source\":[{\"@id\":\"7b4e08c3-c0f4-4e48-bd60-ee89d41969e7\"}],\"target\":[{\"@id\":\"3e6231a3-ab2e-4c48-b8c8-02173070f675\"}]},{\"@id\":\"7499aa58-faea-4611-a9ed-d7f6cf2a57ee\",\"@type\":\"FlowConnectionUsage\",\"name\":\"pipe_to_j1h\",\"source\":[{\"@id\":\"b84656fe-17a3-451e-9a19-8acb300e0edd\"}],\"target\":[{\"@id\":\"3e6231a3-ab2e-4c48-b8c8-02173070f675\"}]},{\"@id\":\"cf9c6dc8-81a2-4135-9e45-578ef4c810ab\",\"@type\":\"FlowConnectionUsage\",\"name\":\"j1h_to_j0h\",\"source\":[{\"@id\":\"3e6231a3-ab2e-4c48-b8c8-02173070f675\"}],\"target\":[{\"@id\":\"3361c7b9-0d82-4899-a5b6-5a3fe2be696d\"}]},{\"@id\":\"4a457ad3-7e3e-4c23-b1dd-8ed219557859\",\"@type\":\"FlowConnectionUsage\",\"name\":\"cyl_to_j0h\",\"source\":[{\"@id\":\"b2717107-1470-4e8d-bfb5-b55a218e4169\"}],\"target\":[{\"@id\":\"3361c7b9-0d82-4899-a5b6-5a3fe2be696d\"}]},{\"@id\":\"81efc4c8-a49f-4ec8-8926-acc57d8b2a7d\",\"@type\":\"FlowConnectionUsage\",\"name\":\"tf_to_j0h\",\"source\":[{\"@id\":\"345cf55d-6913-447c-80d4-99881c309f78\"}],\"target\":[{\"@id\":\"3361c7b9-0d82-4899-a5b6-5a3fe2be696d\"}]},{\"@id\":\"c387074d-4e05-48df-b4aa-97fb8acf26d5\",\"@type\":\"FlowConnectionUsage\",\"name\":\"tf_to_j1m\",\"source\":[{\"@id\":\"8b9adebb-ff77-46f0-9d26-5a9e4430585d\"}],\"target\":[{\"@id\":\"5db68fe7-7ab9-4f87-b674-bc9b57652ed0\"}]},{\"@id\":\"051d6065-112c-4c13-b0e2-ea72ce7c9722\",\"@type\":\"FlowConnectionUsage\",\"name\":\"piston_to_j1m\",\"source\":[{\"@id\":\"04a5a2f3-700b-4457-bdb9-ce4a35217d58\"}],\"target\":[{\"@id\":\"5db68fe7-7ab9-4f87-b674-bc9b57652ed0\"}]},{\"@id\":\"708edf59-fe06-4589-a318-2f40547cb7cc\",\"@type\":\"FlowConnectionUsage\",\"name\":\"friction_to_j1m\",\"source\":[{\"@id\":\"34e1da96-c996-44b2-b9c1-45263c07d655\"}],\"target\":[{\"@id\":\"5db68fe7-7ab9-4f87-b674-bc9b57652ed0\"}]}]}",
+        "scap_errors": "BG semantic check: Junction 'J1_pump_out' (J1) has fewer than 2 bonds — junction is meaningless, Junction 'J1_pipe_port' (J1) has fewer than 2 bonds — junction is meaningless, Junction 'J0_cyl_port' (J0) has fewer than 2 bonds — junction is meaningless, Junction 'J0_tf_hyd' (J0) has fewer than 2 bonds — junction is meaningless, Junction 'J1_tf_mech' (J1) has fewer than 2 bonds — junction is meaningless, Junction 'J1_piston_port' (J1) has fewer than 2 bonds — junction is meaningless, Junction 'J1_friction_port' (J1) has fewer than 2 bonds — junction is meaningless",
+        "socratic_answers": ""
+      },
+      "result": "McpError: MCP error -32001: Request timed out"
+    }
+  ],
+  "reply": "",
+  "errors": [
+    "create_model failed: McpError: MCP error -32001: Request timed out"
+  ],
+  "duration_ms": 75381
+}

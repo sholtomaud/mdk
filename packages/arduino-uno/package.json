@@ -1,0 +1,10 @@
+{
+  "name": "@mdk/arduino-uno",
+  "version": "0.1.0",
+  "description": "Arduino Uno R3 Bond Graph parameters (digital I/O and PWM ports)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": ["mdk", "bond-graph", "arduino", "microcontroller"],
+  "license": "MIT",
+  "peerDependencies": { "@mdk/core": ">=0.1.0" }
+}

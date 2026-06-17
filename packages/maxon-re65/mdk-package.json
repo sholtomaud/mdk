@@ -1,0 +1,17 @@
+{
+  "mdk": {
+    "schemaVersion": "1.0",
+    "vendor": "Maxon Motor",
+    "model_number": "RE65",
+    "description": "Maxon RE65 brushed DC motor, 24V 250W. Heavy-duty industrial and robotics applications.",
+    "datasheet_url": "https://www.maxongroup.com/medias/sys_master/8825523126302.pdf",
+    "category": "dc_motor"
+  },
+  "elements": [
+    { "name": "armature_resistance", "bgType": "R",  "domain": "electrical",           "parameters": { "value": 0.255,       "unit": "Ω",       "tolerance": 0.10 } },
+    { "name": "armature_inductance", "bgType": "I",  "domain": "electrical",           "parameters": { "value": 0.000095,   "unit": "H",       "tolerance": 0.20 } },
+    { "name": "torque_constant",     "bgType": "GY",                                   "parameters": { "value": 0.0603,     "unit": "N·m/A",   "notes": "k_t = k_e (SI)" } },
+    { "name": "rotor_inertia",       "bgType": "I",  "domain": "mechanical_rotation",  "parameters": { "value": 0.000680,   "unit": "kg·m²",   "notes": "680 g·cm²" } },
+    { "name": "viscous_friction",    "bgType": "R",  "domain": "mechanical_rotation",  "parameters": { "value": 0.000030,   "unit": "N·m·s/rad" } }
+  ]
+}

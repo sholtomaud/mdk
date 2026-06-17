@@ -1,0 +1,33 @@
+{
+  "mdk": {
+    "schemaVersion": "1.0",
+    "vendor": "Adafruit",
+    "model_number": "DC Motor + Stepper FeatherWing",
+    "description": "Adafruit DC Motor + Stepper FeatherWing (PID #2927). TB6612 dual H-bridge. Drives 2× DC motors or 1× stepper. Modelled as a TF (transformer) coupling logic voltage to motor power domain.",
+    "datasheet_url": "https://cdn-learn.adafruit.com/downloads/pdf/adafruit-stepper-dc-motor-featherwing.pdf",
+    "category": "motor_driver"
+  },
+  "elements": [
+    {
+      "name": "h_bridge_tf",
+      "bgType": "TF",
+      "parameters": {
+        "value": 1.0,
+        "unit": "dimensionless",
+        "notes": "Transformer ratio = 1 (unity gain). The PWM duty cycle scales the effective source voltage — set ratio to duty_cycle (0…1) in simulation."
+      }
+    },
+    {
+      "name": "driver_resistance",
+      "bgType": "R",
+      "domain": "electrical",
+      "parameters": { "value": 0.5, "unit": "Ω", "notes": "TB6612 on-resistance per channel (typ.)" }
+    },
+    {
+      "name": "logic_supply",
+      "bgType": "Se",
+      "domain": "electrical",
+      "parameters": { "value": 3.3, "unit": "V", "notes": "Feather logic supply (from Feather 3V pin)" }
+    }
+  ]
+}

@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mdk.sh/schemas/mdk-model.schema.json",
+  "title": "MDK Model",
+  "description": "Unified schema for MDK simulation models. Supports Bond Graph and Odum ESL domains. Existing GSSK models (no domain field) are valid Odum ESL documents.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/definitions/odum_esl_model" },
+    { "$ref": "#/definitions/bondgraph_model" }
+  ],
+  "definitions": {
+
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Schema version for forward compatibility. Absent on legacy GSSK models; required on new models."
+    },
+
+    "sim_config": {
+      "type": "object",
+      "properties": {
+        "t_start": { "type": "number", "default": 0.0 },
+        "t_end":   { "type": "number", "default": 100.0 },
+        "dt":      { "type": "number", "exclusiveMinimum": 0, "default": 0.1 },
+        "method":  { "type": "string", "enum": ["euler", "rk4"], "default": "euler" }
+      },
+      "additionalProperties": false
+    },
+
+    "visual_node": {
+      "type": "object",
+      "description": "Diagram layout metadata for a node or element.",
+      "properties": {
+        "x":     { "type": "number", "description": "Canvas x position (pixels)." },
+        "y":     { "type": "number", "description": "Canvas y position (pixels)." },
+        "label": { "type": "string", "description": "Display label override. Defaults to node id / element name." }
+      },
+      "additionalProperties": false
+    },
+
+    "visual_edge": {
+      "type": "object",
+      "description": "Diagram layout metadata for an edge or bond (cubic Bézier control points).",
+      "properties": {
+        "cpx1":  { "type": "number", "description": "Control point 1 x." },
+        "cpy1":  { "type": "number", "description": "Control point 1 y." },
+        "cpx2":  { "type": "number", "description": "Control point 2 x." },
+        "cpy2":  { "type": "number", "description": "Control point 2 y." },
+        "label": { "type": "string", "description": "Bond / edge label shown in the diagram." }
+      },
+      "additionalProperties": false
+    },
+
+    "odum_esl_node": {
+      "type": "object",
+      "required": ["id", "type", "value"],
+      "properties": {
+        "id":     { "type": "string", "minLength": 1 },
+        "type":   { "type": "string", "enum": ["storage", "source", "sink", "constant"] },
+        "value":  { "type": "number" },
+        "visual": { "$ref": "#/definitions/visual_node" }
+      },
+      "additionalProperties": false
+    },
+
+    "odum_esl_edge": {
+      "type": "object",
+      "required": ["origin", "target", "logic", "params"],
+      "properties": {
+        "id":     { "type": "string" },
+        "origin": { "type": "string" },
+        "target": { "type": "string" },
+        "logic":  {
+          "type": "string",
+          "enum": ["constant", "linear", "interaction", "limit", "threshold"]
+        },
+        "params": {
+          "type": "object",
+          "required": ["k"],
+          "properties": {
+            "k":            { "type": "number" },
+            "control_node": { "type": "string" },
+            "threshold":    { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "visual": { "$ref": "#/definitions/visual_edge" }
+      },
+      "additionalProperties": false
+    },
+
+    "odum_esl_model": {
+      "type": "object",
+      "description": "Odum ESL (GSSK) simulation model. The domain field is optional for backward compatibility with existing GSSK files.",
+      "required": ["nodes"],
+      "properties": {
+        "schemaVersion": { "$ref": "#/definitions/schema_version" },
+        "domain":   { "type": "string", "enum": ["odum-esl"] },
+        "nodes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/odum_esl_node" },
+          "minItems": 1
+        },
+        "edges": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/odum_esl_edge" }
+        },
+        "config":   { "$ref": "#/definitions/sim_config" },
+        "metadata": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    },
+
+    "bg_element": {
+      "type": "object",
+      "description": "A Bond Graph element (node).",
+      "required": ["id", "name", "type", "parameter"],
+      "properties": {
+        "id":        { "type": "integer", "minimum": 0 },
+        "name":      { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Se", "Sf",
+            "R", "C", "I",
+            "TF", "GY",
+            "J0", "J1",
+            "FractionalC", "FractionalR"
+          ],
+          "description": "Se=effort source, Sf=flow source, R=resistance, C=capacitance, I=inertance, TF=transformer, GY=gyrator, J0=common-effort junction, J1=common-flow junction. FractionalC/FractionalR reserved for T0.7."
+        },
+        "parameter": {
+          "type": "number",
+          "description": "Constitutive parameter: resistance R, capacitance C, inertance I, transformer ratio r, or source value."
+        },
+        "alpha": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Fractional order α ∈ (0,1). Required for FractionalC and FractionalR (T0.7). Ignored for all other types."
+        },
+        "visual": { "$ref": "#/definitions/visual_node" }
+      },
+      "additionalProperties": false
+    },
+
+    "bg_bond": {
+      "type": "object",
+      "description": "A power bond connecting two Bond Graph elements.",
+      "required": ["id", "source", "target"],
+      "properties": {
+        "id":     { "type": "integer", "minimum": 0 },
+        "source": { "type": "integer", "minimum": 0, "description": "Element id at the tail (power-source end) of this bond." },
+        "target": { "type": "integer", "minimum": 0, "description": "Element id at the head (power-sink end) of this bond." },
+        "type": {
+          "type": "string",
+          "enum": ["power_bond", "InformationBond"],
+          "default": "power_bond",
+          "description": "power_bond: standard Bond Graph power bond. InformationBond: reserved for T9.1 signal-flow semantics."
+        },
+        "visual": { "$ref": "#/definitions/visual_edge" }
+      },
+      "additionalProperties": false
+    },
+
+    "bondgraph_model": {
+      "type": "object",
+      "description": "Bond Graph simulation model.",
+      "required": ["domain", "elements", "bonds"],
+      "properties": {
+        "schemaVersion": { "$ref": "#/definitions/schema_version" },
+        "domain":   { "type": "string", "const": "bondgraph" },
+        "elements": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/bg_element" },
+          "minItems": 1
+        },
+        "bonds": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/bg_bond" }
+        },
+        "initial_state": {
+          "type": "object",
+          "description": "Maps element name to initial state value. C elements: q₀ = C·V₀. I elements: p₀ = I·ẋ₀. Absent keys default to 0.",
+          "additionalProperties": { "type": "number" }
+        },
+        "config":   { "$ref": "#/definitions/sim_config" },
+        "metadata": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    }
+  }
+}

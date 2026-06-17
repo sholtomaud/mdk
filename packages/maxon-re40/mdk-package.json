@@ -1,0 +1,41 @@
+{
+  "mdk": {
+    "schemaVersion": "1.0",
+    "vendor": "Maxon Motor",
+    "model_number": "RE40",
+    "description": "Maxon RE40 brushed DC motor, 24V 150W. High-performance robotics and automation.",
+    "datasheet_url": "https://www.maxongroup.com/medias/sys_master/8825521782814.pdf",
+    "category": "dc_motor"
+  },
+  "elements": [
+    {
+      "name": "armature_resistance",
+      "bgType": "R",
+      "domain": "electrical",
+      "parameters": { "value": 1.03, "unit": "Ω", "tolerance": 0.10, "notes": "Terminal resistance at 25°C" }
+    },
+    {
+      "name": "armature_inductance",
+      "bgType": "I",
+      "domain": "electrical",
+      "parameters": { "value": 0.000165, "unit": "H", "tolerance": 0.20, "notes": "Terminal inductance" }
+    },
+    {
+      "name": "torque_constant",
+      "bgType": "GY",
+      "parameters": { "value": 0.0302, "unit": "N·m/A", "notes": "k_t = k_e (SI, back-EMF = torque constant)" }
+    },
+    {
+      "name": "rotor_inertia",
+      "bgType": "I",
+      "domain": "mechanical_rotation",
+      "parameters": { "value": 0.0000135, "unit": "kg·m²", "notes": "135 g·cm² rotor inertia" }
+    },
+    {
+      "name": "viscous_friction",
+      "bgType": "R",
+      "domain": "mechanical_rotation",
+      "parameters": { "value": 0.000012, "unit": "N·m·s/rad", "notes": "Estimated from no-load current spec" }
+    }
+  ]
+}

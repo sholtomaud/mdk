@@ -1,0 +1,30 @@
+{
+  "mdk": {
+    "schemaVersion": "1.0",
+    "vendor": "Raspberry Pi Foundation",
+    "model_number": "Raspberry Pi 4 Model B",
+    "description": "Raspberry Pi 4B compute module. GPIO ports modelled as effort/flow sources; power consumption as a constant load.",
+    "datasheet_url": "https://datasheets.raspberrypi.com/rpi4/raspberry-pi-4-datasheet.pdf",
+    "category": "compute"
+  },
+  "elements": [
+    {
+      "name": "gpio_high",
+      "bgType": "Se",
+      "domain": "electrical",
+      "parameters": { "value": 3.3, "unit": "V", "notes": "GPIO HIGH (3.3V logic). Max source current 16 mA per pin." }
+    },
+    {
+      "name": "power_supply",
+      "bgType": "Se",
+      "domain": "electrical",
+      "parameters": { "value": 5.0, "unit": "V", "notes": "5V rail via USB-C. Recommended 3A minimum supply." }
+    },
+    {
+      "name": "idle_load",
+      "bgType": "R",
+      "domain": "electrical",
+      "parameters": { "value": 1.667, "unit": "Ω", "notes": "Equivalent load at idle: ~15W ÷ 5V = 3A → R=5/3 Ω" }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@mdk/dsee-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MDK DSEE demo — Full 14-step orchestration pipeline",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "esbuild src/server.ts --bundle --platform=node --outfile=dist/server.js --packages=external",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mdk/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "esbuild": "^0.21.0",
+    "@types/node": "^20.11.5"
+  }
+}

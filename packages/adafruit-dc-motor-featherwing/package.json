@@ -1,0 +1,9 @@
+{
+  "name": "@mdk/adafruit-dc-motor-featherwing",
+  "version": "0.1.0",
+  "description": "Adafruit DC Motor + Stepper FeatherWing Bond Graph parameters (PID #2927)",
+  "main": "index.js",
+  "keywords": ["mdk", "bond-graph", "adafruit", "motor-driver", "featherwing"],
+  "license": "MIT",
+  "peerDependencies": { "@mdk/core": ">=0.1.0" }
+}

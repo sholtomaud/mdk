@@ -1,0 +1,20 @@
+{
+  "name": "@mdk/dia",
+  "version": "0.1.0",
+  "description": "MDK Diagram Editor — Bond Graph and Odum ESL web component (<mdk-dia>)",
+  "type": "module",
+  "main": "dist/mdk-dia.js",
+  "module": "dist/mdk-dia.js",
+  "exports": {
+    ".": "./dist/mdk-dia.js"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "keywords": ["mdk", "bond-graph", "odum-esl", "web-component", "diagram"],
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.4.2"
+  }
+}

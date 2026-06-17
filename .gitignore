@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+
+# TypeScript build output
+dist/
+*.tsbuildinfo
+
+# C / CMake build output
+build/
+build-wasm/
+packages/sim-kernel/build/
+packages/sim-kernel/build-wasm/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile.cmake
+CTestTestfile.cmake
+Testing/
+
+# WASM artefacts
+*.wasm
+*.wasm.map
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+.vscode/settings.json
+.vscode/*.code-workspace
+*.swp
+*.swo
+.idea/
+
+# VSCode extension packaging
+packages/vscode-plugin/*.vsix
+packages/vscode/out/
+packages/vscode/*.vsix
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+Thumbs.db
+
+# Claude Code local config
+.claude/
+.mcp.json

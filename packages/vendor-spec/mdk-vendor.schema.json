@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mdk.sh/schemas/mdk-vendor.schema.json",
+  "title": "MDK Vendor Package",
+  "description": "Schema for @mdk/<vendor>-<model> npm packages. Every field in this schema is required for publication via mdk package validate.",
+  "type": "object",
+  "required": ["mdk", "elements"],
+  "properties": {
+    "mdk": {
+      "type": "object",
+      "required": ["schemaVersion", "vendor", "model_number", "description", "datasheet_url"],
+      "properties": {
+        "schemaVersion": { "type": "string", "enum": ["1.0"] },
+        "vendor":        { "type": "string", "minLength": 1, "description": "Manufacturer name, e.g. 'Maxon Motor'" },
+        "model_number":  { "type": "string", "minLength": 1, "description": "Part number as it appears on the datasheet" },
+        "description":   { "type": "string", "minLength": 1 },
+        "datasheet_url": { "type": "string", "format": "uri",  "description": "Direct link to the manufacturer datasheet (required for CI compliance check)" },
+        "category": {
+          "type": "string",
+          "enum": ["dc_motor", "servo_motor", "gearbox", "sensor", "microcontroller", "compute", "motor_driver", "power_supply", "custom"],
+          "description": "Hardware category — used by mdk search to filter results"
+        }
+      },
+      "additionalProperties": false
+    },
+    "elements": {
+      "type": "array",
+      "description": "One entry per Bond Graph element this component exposes.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "bgType", "parameters"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Identifier used in TypeScript: new MdkMaxonRe40().armature etc."
+          },
+          "bgType": {
+            "type": "string",
+            "enum": ["Se", "Sf", "R", "C", "I", "TF", "GY", "J0", "J1"],
+            "description": "Bond Graph element type this component maps to"
+          },
+          "parameters": {
+            "type": "object",
+            "required": ["value"],
+            "properties": {
+              "value": {
+                "type": "number",
+                "description": "Primary constitutive parameter in SI units (Ω, F, H, N·m/A, kg·m², …)"
+              },
+              "unit":      { "type": "string", "description": "SI unit string, e.g. 'Ω', 'H', 'kg·m²'" },
+              "tolerance": { "type": "number", "description": "Fractional tolerance, e.g. 0.05 = ±5%" },
+              "min":       { "type": "number" },
+              "max":       { "type": "number" },
+              "notes":     { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "domain": {
+            "type": "string",
+            "enum": ["electrical", "mechanical_translation", "mechanical_rotation", "hydraulic", "thermal", "generic"]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

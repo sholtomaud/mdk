@@ -1,0 +1,10 @@
+{
+  "name": "@mdk/raspberry-pi-4",
+  "version": "0.1.0",
+  "description": "Raspberry Pi 4 Model B Bond Graph parameters (GPIO, power supply, idle load)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": ["mdk", "bond-graph", "raspberry-pi", "compute"],
+  "license": "MIT",
+  "peerDependencies": { "@mdk/core": ">=0.1.0" }
+}

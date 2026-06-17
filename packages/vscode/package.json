@@ -1,0 +1,75 @@
+{
+  "name": "mdk-vscode",
+  "displayName": "MDK — Model-Driven Kit",
+  "description": "Bond Graph and Odum ESL systems engineering: real-time causality linting + diagram editor",
+  "version": "0.1.0",
+  "publisher": "mdk",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other", "Linters", "Visualization"],
+  "keywords": ["bond-graph", "systems-engineering", "odum-esl", "mbse"],
+  "license": "MIT",
+  "activationEvents": [
+    "onLanguage:typescript",
+    "workspaceContains:**/mdk.config.json",
+    "workspaceContains:**/*.mdk.json"
+  ],
+  "main": "dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "mdk.openDiagram",
+        "title": "MDK: Open Diagram Editor",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "mdk.validate",
+        "title": "MDK: Validate Model"
+      },
+      {
+        "command": "mdk.synth",
+        "title": "MDK: Synthesise Model"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "mdk.openDiagram",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.mdk\\.json$/",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "MDK",
+      "properties": {
+        "mdk.validateOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run mdk validate on every .mdk.json save"
+        },
+        "mdk.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show causality status in the status bar"
+        }
+      }
+    },
+    "typescriptServerPlugins": [
+      {
+        "name": "@mdk/ts-plugin",
+        "enableForWorkspaceTypeScriptVersions": true
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mdk/ts-plugin": "*"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  }
+}

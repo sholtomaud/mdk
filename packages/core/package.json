@@ -1,0 +1,21 @@
+{
+  "name": "@mdk/core",
+  "version": "0.1.0",
+  "description": "MDK TypeScript constructs and Bond Graph / Odum ESL synthesis library",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["bond-graph", "odum-esl", "simulation", "systems-engineering"],
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
+  }
+}

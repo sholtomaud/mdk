@@ -1,0 +1,10 @@
+{
+  "name": "@mdk/maxon-re40",
+  "version": "0.1.0",
+  "description": "Maxon RE40 brushed DC motor Bond Graph parameters",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": ["mdk", "bond-graph", "maxon", "dc-motor"],
+  "license": "MIT",
+  "peerDependencies": { "@mdk/core": ">=0.1.0" }
+}
