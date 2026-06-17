@@ -342,10 +342,12 @@ static int propagate_all(SystemGraph* graph) {
         Element* e = graph->elements[i];
         int r = 0;
         switch (e->type) {
-            case ELEM_J0: r = propagate_j0(e); break;
-            case ELEM_J1: r = propagate_j1(e); break;
-            case ELEM_TF: r = propagate_tf(e); break;
-            case ELEM_GY: r = propagate_gy(e); break;
+            case ELEM_J0:  r = propagate_j0(e); break;
+            case ELEM_J1:  r = propagate_j1(e); break;
+            case ELEM_TF:  r = propagate_tf(e); break;
+            case ELEM_MTF: r = propagate_tf(e); break;
+            case ELEM_GY:  r = propagate_gy(e); break;
+            case ELEM_MGY: r = propagate_gy(e); break;
             default: continue;
         }
         if (r == -1) return -1;
@@ -429,11 +431,13 @@ bool assign_causality(SystemGraph* graph) {
         if (!propagate_until_stable(graph)) return false;
     }
 
-    /* ── Step 3: Resistors (arbitrary causality) ─────────────────
-     * Default: R outputs FLOW_OUT (conductive / conductance form). */
+    /* ── Step 3: Resistors + CTF (arbitrary causality) ───────────
+     * Default: R and CTF output FLOW_OUT (conductance form).
+     * CTF (Control Transformer) is a 1-power-bond connecting element
+     * with no preferred causality — treated as R in SCAP. */
     for (int i = 0; i < graph->element_count; i++) {
         Element* e = graph->elements[i];
-        if (e->type != ELEM_R) continue;
+        if (e->type != ELEM_R && e->type != ELEM_CTF) continue;
 
         for (int j = 0; j < e->bond_count; j++) {
             Bond* b = e->connected_bonds[j];
@@ -441,7 +445,9 @@ bool assign_causality(SystemGraph* graph) {
             if (!assign_bond_from(b, e, FLOW_OUT)) {
                 char msg[256];
                 snprintf(msg, sizeof(msg),
-                         "Resistor '%s' causality conflict", e->name);
+                         "Element '%s' (%s) causality conflict",
+                         e->name,
+                         e->type == ELEM_CTF ? "CTF" : "R");
                 report_add(CAUSALITY_ERROR, msg, e->id, b->id);
                 return false;
             }

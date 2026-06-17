@@ -16,7 +16,10 @@ typedef enum {
     ELEM_TF,  /* Transformer    (e.g. gear ratio)         */
     ELEM_GY,  /* Gyrator        (e.g. DC motor)           */
     ELEM_J0,  /* 0-junction     (common effort)           */
-    ELEM_J1   /* 1-junction     (common flow)             */
+    ELEM_J1,  /* 1-junction     (common flow)             */
+    ELEM_MTF, /* Modulated Transformer (DACM — same SCAP as TF) */
+    ELEM_MGY, /* Modulated Gyrator    (DACM — same SCAP as GY) */
+    ELEM_CTF  /* Control Transformer  (DACM — arbitrary causality like R) */
 } ElementType;
 
 /* ── Forward declaration ─────────────────────────────────────────── */

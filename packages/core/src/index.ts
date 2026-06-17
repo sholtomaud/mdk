@@ -3,6 +3,19 @@ export { BondGraphModel, BgElement, BgBond, SimConfig as BgSimConfig, BG_ELEMENT
 export type { BgElementType } from './schema/bondgraph.js';
 export { OdumEslModel, OdumNode, OdumEdge, SimConfig as OdumSimConfig } from './schema/odum-esl.js';
 
+/* ── DACM — Dimensional Analysis and Conceptual Modelling ───────── */
+export {
+  VAR_CATEGORIES, VAR_ROLES,
+  SiDimensions, DacmVariable, PowerLaw,
+  DacmFunction, DacmSubsystem, FunctionalModel,
+} from './schema/dacm.js';
+export type {
+  VarCategory, VarRole, FunctionalModel as FunctionalModelType,
+  DacmVariable as DacmVariableType, DacmSubsystem as DacmSubsystemType,
+  DacmFunction as DacmFunctionType, PowerLaw as PowerLawType,
+  SiDimensions as SiDimensionsType,
+} from './schema/dacm.js';
+
 /* ── Base element types ──────────────────────────────────────────── */
 export { Element, PowerBond } from './elements/base.js';
 export type { PhysicalDomain, VisualMeta } from './elements/base.js';

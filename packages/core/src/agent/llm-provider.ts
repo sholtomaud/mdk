@@ -1,6 +1,6 @@
 export interface GenerateModelOpts {
   description: string;
-  domain: 'bondgraph' | 'odum-esl' | 'sysml';
+  domain: 'bondgraph' | 'odum-esl' | 'sysml' | 'functional';
   correction_json?: string;
   scap_errors?: string;
   socratic_answers?: string;

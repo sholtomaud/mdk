@@ -86,6 +86,13 @@ async function getKernel(): Promise<SimKernelModule> {
  * remap before serialising to JSON for WASM.
  * ─────────────────────────────────────────────────────────────────── */
 
+/* DACM elements the compiled WASM binary doesn't know yet — downcast to nearest equivalent. */
+const WASM_TYPE_DOWNCAST: Partial<Record<string, string>> = {
+  MTF: 'TF',
+  MGY: 'GY',
+  CTF: 'R',
+};
+
 function normaliseBondGraphForWasm(model: z.infer<typeof BondGraphModel>): object {
   const idToIdx = new Map<number, number>();
   model.elements.forEach((el, idx) => idToIdx.set(el.id, idx));
@@ -105,7 +112,11 @@ function normaliseBondGraphForWasm(model: z.infer<typeof BondGraphModel>): objec
 
   return {
     ...model,
-    elements: model.elements.map((el, idx) => ({ ...el, id: idx })),
+    elements: model.elements.map((el, idx) => ({
+      ...el,
+      id: idx,
+      type: WASM_TYPE_DOWNCAST[el.type] ?? el.type,
+    })),
     bonds: model.bonds.map(b => ({
       ...b,
       source: idToIdx.get(b.source) ?? b.source,

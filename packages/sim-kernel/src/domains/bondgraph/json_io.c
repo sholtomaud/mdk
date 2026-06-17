@@ -18,6 +18,7 @@ static const struct { const char* name; ElementType type; } TYPE_MAP[] = {
     { "R",  ELEM_R  }, { "C",  ELEM_C  }, { "I",  ELEM_I },
     { "TF", ELEM_TF }, { "GY", ELEM_GY },
     { "J0", ELEM_J0 }, { "J1", ELEM_J1 },
+    { "MTF", ELEM_MTF }, { "MGY", ELEM_MGY }, { "CTF", ELEM_CTF },
     { NULL, 0 }
 };
 

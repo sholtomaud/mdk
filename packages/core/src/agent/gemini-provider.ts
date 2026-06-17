@@ -56,7 +56,7 @@ const BG_SCHEMA = {
         properties: {
           id:        { type: 'integer' },
           name:      { type: 'string' },
-          type:      { type: 'string', enum: ['Se','Sf','R','C','I','TF','GY','J0','J1'] },
+          type:      { type: 'string', enum: ['Se','Sf','R','C','I','TF','GY','J0','J1','MTF','MGY','CTF'] },
           parameter: { type: 'number' },
         },
         required: ['id','name','type','parameter'],
@@ -111,7 +111,7 @@ const SYSML_SCHEMA = {
           bgMapping: {
             type: 'object',
             properties: {
-              elementType: { type: 'string', enum: ['Se','Sf','R','C','I','TF','GY','J0','J1'] },
+              elementType: { type: 'string', enum: ['Se','Sf','R','C','I','TF','GY','J0','J1','MTF','MGY','CTF'] },
               parameter:   { type: 'number' },
             },
           },
@@ -180,9 +180,99 @@ const ODUM_SCHEMA = {
   required: ['name','nodes','edges'],
 };
 
+const FUNCTIONAL_SCHEMA = {
+  type: 'object',
+  properties: {
+    name:      { type: 'string' },
+    domain:    { type: 'string', enum: ['functional'] },
+    objective: { type: 'string' },
+    subsystems: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id:   { type: 'string' },
+          name: { type: 'string' },
+          connectorType: { type: 'string', enum: ['MTF','MGY','CTF'] },
+          connectedTo:   { type: 'array', items: { type: 'string' } },
+          functions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id:          { type: 'string' },
+                name:        { type: 'string' },
+                description: { type: 'string' },
+                organ:       { type: 'string', enum: ['Se','Sf','R','C','I','TF','GY','J0','J1','MTF','MGY','CTF'] },
+                variables: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id:       { type: 'string' },
+                      name:     { type: 'string' },
+                      symbol:   { type: 'string' },
+                      category: { type: 'string', enum: ['effort','flow','momentum','displacement','connecting'] },
+                      role:     { type: 'string', enum: ['independent','dependent','exogenous','performance'] },
+                      unit:     { type: 'string' },
+                      siDimensions: {
+                        type: 'object',
+                        properties: {
+                          M: { type: 'number' }, L: { type: 'number' }, T: { type: 'number' },
+                          I: { type: 'number' }, Θ: { type: 'number' }, N: { type: 'number' }, J: { type: 'number' },
+                        },
+                      },
+                    },
+                    required: ['id','name','symbol'],
+                  },
+                },
+                powerLaws: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id:                  { type: 'string' },
+                      functionId:          { type: 'string' },
+                      dependentVar:        { type: 'string' },
+                      piConstant:          { type: 'number' },
+                      exponents:           { type: 'object' },
+                      dimensionlessGroup:  { type: 'string' },
+                      physicalPhenomenon:  { type: 'string' },
+                    },
+                    required: ['id','functionId','dependentVar','exponents'],
+                  },
+                },
+              },
+              required: ['id','name'],
+            },
+          },
+        },
+        required: ['id','name','functions'],
+      },
+    },
+    systemVariables: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id:       { type: 'string' },
+          name:     { type: 'string' },
+          symbol:   { type: 'string' },
+          category: { type: 'string', enum: ['effort','flow','momentum','displacement','connecting'] },
+          role:     { type: 'string', enum: ['independent','dependent','exogenous','performance'] },
+          unit:     { type: 'string' },
+        },
+        required: ['id','name','symbol'],
+      },
+    },
+  },
+  required: ['name','domain','subsystems'],
+};
+
 function schemaForDomain(domain: GenerateModelOpts['domain']): object {
-  if (domain === 'bondgraph') return BG_SCHEMA;
-  if (domain === 'odum-esl')  return ODUM_SCHEMA;
+  if (domain === 'bondgraph')  return BG_SCHEMA;
+  if (domain === 'odum-esl')   return ODUM_SCHEMA;
+  if (domain === 'functional') return FUNCTIONAL_SCHEMA;
   return SYSML_SCHEMA;
 }
 
@@ -217,7 +307,20 @@ Use sourceFeature/targetFeature on FlowConnectionUsage to reference port @id val
 If physical parameter values are unknown, include a "missing_parameters" array.${correctionSection}${socraticSection}`;
   }
   if (domain === 'bondgraph') {
-    return `You are an expert Bond Graph modelling assistant for MDK. Generate a valid Bond Graph JSON model. Elements must have correct types (Se/Sf/R/C/I/TF/GY/J0/J1). Ensure causal consistency: every junction must have exactly one effort-setting bond.`;
+    return `You are an expert Bond Graph modelling assistant for MDK. Generate a valid Bond Graph JSON model. Elements must have correct types (Se/Sf/R/C/I/TF/GY/J0/J1/MTF/MGY/CTF). Ensure causal consistency: every junction must have exactly one effort-setting bond. Use MTF for modulated transformers, MGY for modulated gyrators, and CTF for control transformers (connecting variables with arbitrary causality).`;
+  }
+  if (domain === 'functional') {
+    return `You are an expert DACM (Dimensional Analysis and Conceptual Modelling) functional modelling assistant for MDK. Given a system description, generate a FunctionalModel JSON following the Dhalpe et al. 2025 DACM framework.
+
+Structure:
+- Decompose the system into subsystems, each with bond-graph organs (Se/Sf/R/C/I/TF/GY/MTF/MGY/CTF)
+- Assign variables with categories: effort, flow, momentum, displacement, or connecting
+- Assign variable roles: independent (driver), dependent (response), exogenous (external), performance (output metric)
+- Where applicable, derive power-law relationships (dimensionless pi-groups using LASSO/OLS dimensional analysis)
+- Use MTF for modulated transformers (signal-controlled coupling), MGY for modulated gyrators (cross-domain transduction), CTF for control transformers (connecting variables)
+- Include SI dimension exponents {M,L,T,I,Θ,N,J} for each variable where known
+
+Generate a complete FunctionalModel JSON with domain: "functional".`;
   }
   return `You are an expert Odum ESL modelling assistant for MDK. Generate a valid Odum Energy Systems Language model JSON with nodes (Source/Storage/Consumer/Interaction/Transaction) and edges (flow/control/feedback).`;
 }

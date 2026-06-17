@@ -115,9 +115,11 @@ export interface PartUsage {
   isComposite: boolean;
   multiplicity?: { lower: number; upper: number };
   bgMapping?: {
-    elementType?: 'Se' | 'Sf' | 'R' | 'C' | 'I' | 'TF' | 'GY' | 'J0' | 'J1';
+    elementType?: 'Se' | 'Sf' | 'R' | 'C' | 'I' | 'TF' | 'GY' | 'J0' | 'J1' | 'MTF' | 'MGY' | 'CTF';
     parameter?: number | string;
   };
+  varCategory?: 'effort' | 'flow' | 'momentum' | 'displacement' | 'connecting';
+  varRole?: 'independent' | 'dependent' | 'exogenous' | 'performance';
 }
 
 export const PartUsage: z.ZodType<PartUsage, z.ZodTypeDef, any> = SysmlBase.extend({
@@ -132,7 +134,7 @@ export const PartUsage: z.ZodType<PartUsage, z.ZodTypeDef, any> = SysmlBase.exte
     upper: z.number().int().positive().default(1),
   }).optional(),
   bgMapping: z.object({
-    elementType: z.enum(['Se', 'Sf', 'R', 'C', 'I', 'TF', 'GY', 'J0', 'J1']).optional(),
+    elementType: z.enum(['Se', 'Sf', 'R', 'C', 'I', 'TF', 'GY', 'J0', 'J1', 'MTF', 'MGY', 'CTF']).optional(),
     /**
      * Physical parameter value (R, C, I, modulus, etc).
      * Accepts a concrete number OR a Token placeholder string `${Token[<key>]}`
@@ -140,6 +142,8 @@ export const PartUsage: z.ZodType<PartUsage, z.ZodTypeDef, any> = SysmlBase.exte
      */
     parameter:   z.union([z.number(), z.string()]).optional(),
   }).optional(),
+  varCategory: z.enum(['effort', 'flow', 'momentum', 'displacement', 'connecting']).optional(),
+  varRole: z.enum(['independent', 'dependent', 'exogenous', 'performance']).optional(),
 });
 
 /* ── FlowConnectionUsage ──────────────────────────────────────────────

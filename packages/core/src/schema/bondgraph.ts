@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const BG_ELEMENT_TYPES = [
   'Se', 'Sf', 'R', 'C', 'I', 'TF', 'GY', 'J0', 'J1',
   'FractionalC', 'FractionalR',
+  'MTF', 'MGY', 'CTF',
 ] as const;
 
 export type BgElementType = typeof BG_ELEMENT_TYPES[number];

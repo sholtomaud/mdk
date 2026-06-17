@@ -115,10 +115,22 @@ function buildBDD(elements: Elem[]): string {
   return '```mermaid\n' + lines.join('\n') + '\n```';
 }
 
+const VAR_ROLE_CLASSDEFS = [
+  `  classDef independent fill:#22c55e,stroke:#166534,color:#fff`,
+  `  classDef dependent fill:#3b82f6,stroke:#1d4ed8,color:#fff`,
+  `  classDef exogenous fill:#9ca3af,stroke:#374151,color:#fff`,
+  `  classDef performance fill:#ef4444,stroke:#991b1b,color:#fff`,
+];
+
+function varRole(el: Elem): string | undefined {
+  return typeof el.varRole === 'string' ? String(el.varRole) : undefined;
+}
+
 function buildIBD(elements: Elem[], packageName: string): string {
   const byId = buildByIdMap(elements);
   const ownerMap = buildOwnerMap(elements);
   const lines: string[] = [`%%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '13px' }}}%%`, `graph LR`, `  %% IBD: ${packageName}`];
+  lines.push(...VAR_ROLE_CLASSDEFS);
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
   const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
@@ -127,7 +139,9 @@ function buildIBD(elements: Elem[], packageName: string): string {
     const name = String(p.name ?? p['@id']);
     const et = bgType(p);
     const label = et ? `${et}: ${name}` : name;
-    lines.push(`  ${san(name)}["${label}"]`);
+    const nodeId = san(name);
+    const role = varRole(p);
+    lines.push(`  ${nodeId}["${label}"]${role ? `:::${role}` : ''}`);
   }
 
   for (const f of flows) {
@@ -256,6 +270,7 @@ function buildACT(elements: Elem[]): string {
   const byId = buildByIdMap(elements);
   const ownerMap = buildOwnerMap(elements);
   const lines: string[] = [`%%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '13px' }}}%%`, `graph TD`];
+  lines.push(...VAR_ROLE_CLASSDEFS);
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
   const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
@@ -265,17 +280,21 @@ function buildACT(elements: Elem[]): string {
     const et = bgType(p);
     const param = bgParam(p);
     const id = san(name);
+    const role = varRole(p);
+    const roleSuffix = role ? `:::${role}` : '';
     if (et === 'Se' || et === 'Sf') {
-      lines.push(`  ${id}(["▶ ${et}: ${name}"])`);
+      lines.push(`  ${id}(["▶ ${et}: ${name}"])${roleSuffix}`);
     } else if (et === 'C' || et === 'I') {
       const qLabel = param !== undefined ? `\\nq=${param}` : '';
-      lines.push(`  ${id}["${et}: ${name}${qLabel}"]`);
-    } else if (et === 'R') {
-      lines.push(`  ${id}{{"R: ${name}"}}`);
+      lines.push(`  ${id}["${et}: ${name}${qLabel}"]${roleSuffix}`);
+    } else if (et === 'R' || et === 'CTF') {
+      lines.push(`  ${id}{{"${et}: ${name}"}}${roleSuffix}`);
     } else if (et === 'J0' || et === 'J1') {
-      lines.push(`  ${id}((${et}))`);
+      lines.push(`  ${id}((${et}))${roleSuffix}`);
+    } else if (et === 'MTF' || et === 'MGY') {
+      lines.push(`  ${id}[/"${et}: ${name}"/]${roleSuffix}`);
     } else {
-      lines.push(`  ${id}["${et ? et + ': ' : ''}${name}"]`);
+      lines.push(`  ${id}["${et ? et + ': ' : ''}${name}"]${roleSuffix}`);
     }
   }
 
@@ -403,6 +422,7 @@ function buildESL(elements: Elem[]): string {
   const byId = buildByIdMap(elements);
   const ownerMap = buildOwnerMap(elements);
   const lines: string[] = [`%%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '13px' }}}%%`, `graph LR`];
+  lines.push(...VAR_ROLE_CLASSDEFS);
 
   const parts = elements.filter(e => e['@type'] === 'PartUsage');
   const flows = elements.filter(e => e['@type'] === 'FlowConnectionUsage').map(normaliseFlow);
@@ -419,18 +439,22 @@ function buildESL(elements: Elem[]): string {
     const et = bgType(p);
     const param = bgParam(p);
     const id = san(name);
+    const role = varRole(p);
+    const roleSuffix = role ? `:::${role}` : '';
 
     if (et === 'Se' || et === 'Sf') {
-      lines.push(`  src_${id}(("☀ ${name}"))`);
+      lines.push(`  src_${id}(("☀ ${name}"))${roleSuffix}`);
     } else if (et === 'C' || et === 'I') {
       const qLabel = param !== undefined ? `\\nq=${param}` : '';
-      lines.push(`  stg_${id}[["⬡ ${name}${qLabel}"]]`);
-    } else if (et === 'R') {
-      lines.push(`  snk_${id}{{"↓ ${name}"}}`);
+      lines.push(`  stg_${id}[["⬡ ${name}${qLabel}"]]${roleSuffix}`);
+    } else if (et === 'R' || et === 'CTF') {
+      lines.push(`  snk_${id}{{"↓ ${name}"}}${roleSuffix}`);
     } else if (et === 'J0' || et === 'J1') {
-      lines.push(`  jn_${id}((${et}))`);
+      lines.push(`  jn_${id}((${et}))${roleSuffix}`);
+    } else if (et === 'MTF' || et === 'MGY') {
+      lines.push(`  mod_${id}[/"⇌ ${et}: ${name}"/]${roleSuffix}`);
     } else {
-      lines.push(`  nd_${id}["${name}"]`);
+      lines.push(`  nd_${id}["${name}"]${roleSuffix}`);
     }
   }
 
@@ -445,8 +469,14 @@ function buildESL(elements: Elem[]): string {
 
     const srcEt = bgType(srcEl);
     const tgtEt = bgType(tgtEl);
-    const srcPrefix = srcEt === 'Se' || srcEt === 'Sf' ? 'src_' : srcEt === 'C' || srcEt === 'I' ? 'stg_' : srcEt === 'R' ? 'snk_' : srcEt === 'J0' || srcEt === 'J1' ? 'jn_' : 'nd_';
-    const tgtPrefix = tgtEt === 'Se' || tgtEt === 'Sf' ? 'src_' : tgtEt === 'C' || tgtEt === 'I' ? 'stg_' : tgtEt === 'R' ? 'snk_' : tgtEt === 'J0' || tgtEt === 'J1' ? 'jn_' : 'nd_';
+    const eslPrefix = (et: string) =>
+      (et === 'Se' || et === 'Sf') ? 'src_' :
+      (et === 'C'  || et === 'I')  ? 'stg_' :
+      (et === 'R'  || et === 'CTF') ? 'snk_' :
+      (et === 'J0' || et === 'J1') ? 'jn_'  :
+      (et === 'MTF' || et === 'MGY') ? 'mod_' : 'nd_';
+    const srcPrefix = eslPrefix(srcEt);
+    const tgtPrefix = eslPrefix(tgtEt);
 
     lines.push(`  ${srcPrefix}${san(String(srcEl.name ?? srcOwner))} --> ${tgtPrefix}${san(String(tgtEl.name ?? tgtOwner))}`);
   }
@@ -480,6 +510,10 @@ function buildBgDiagram(elements: BgElem[], bonds: BgBond[], format: 'mermaid' |
       lines.push(`  n${el.id}(["${el.type}: ${el.name}${param}"])`);
     } else if (el.type === 'C' || el.type === 'I') {
       lines.push(`  n${el.id}[["${el.type}: ${el.name}${param}"]]`);
+    } else if (el.type === 'MTF' || el.type === 'MGY') {
+      lines.push(`  n${el.id}[/"${el.type}: ${el.name}${param}"/]`);
+    } else if (el.type === 'CTF') {
+      lines.push(`  n${el.id}{{"${el.type}: ${el.name}${param}"}}`);
     } else {
       lines.push(`  n${el.id}["${el.type}: ${el.name}${param}"]`);
     }
