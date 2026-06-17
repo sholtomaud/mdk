@@ -163,10 +163,12 @@ make wasm                # produces packages/sim-kernel/build-wasm/sim_kernel.js
 
 - **Elements:** `Se` (Effort Source), `Sf` (Flow Source), `R`, `C`, `I`,
   `TF` (Transformer), `GY` (Gyrator), `J0` (0-junction), `J1` (1-junction)
+- **DACM elements:** `MTF` (Modulated Transformer — SCAP same as TF), `MGY` (Modulated Gyrator — SCAP same as GY), `CTF` (Control Transformer — arbitrary causality like R)
 - **Bonds:** Power connections (Effort × Flow); each end is `EFFORT_OUT` or `FLOW_OUT`
 - **SCAP:** Sequential Causality Assignment Procedure — assigns causality deterministically
 - **State variables:** `C` stores charge `q`; `I` stores momentum `p`
 - **State-space:** `ẋ = Ax + Bu, y = Cx + Du` extracted by probe-column method in `bg_solver.c`
+- **WASM downcast:** MTF→TF, MGY→GY, CTF→R in `wasm-bridge.ts` until the compiled WASM binary is rebuilt with Emscripten to include ELEM_MTF/MGY/CTF natively
 
 ### Odum ESL Terminology
 
@@ -226,6 +228,8 @@ TypeScript counterparts (Zod) live in `packages/core/src/schema/`.
 | `packages/sim-kernel/src/domains/odum-esl/gssk.h` | GSSK Odum ESL public API |
 | `packages/core/src/schema/bondgraph.ts` | Zod schema — Bond Graph |
 | `packages/core/src/schema/odum-esl.ts` | Zod schema — Odum ESL |
+| `packages/core/src/schema/dacm.ts` | Zod schema — DACM FunctionalModel, PowerLaw, DacmVariable |
+| `packages/core/src/schema/sysml.ts` | Zod schema — SysML v2 (PartUsage, varRole, bgMapping) |
 | `packages/core/src/elements/primitives.ts` | L1 TypeScript element classes |
 | `packages/core/src/system/app.ts` | MdkApp / MdkStack / MdkSystem |
 | `packages/core/src/kernel/wasm-bridge.ts` | Node.js WASM loader + `runKernel()` |
@@ -265,6 +269,46 @@ TypeScript counterparts (Zod) live in `packages/core/src/schema/`.
 **Dev-only tools** (compilers, test runners, type checkers) are exempt — `typescript`, `esbuild`, `vitest`, `vite` etc. are fine as `devDependencies`.
 
 **Protocol/schema SDKs** that have no native equivalent (e.g. `@modelcontextprotocol/sdk`, `zod`) are acceptable when there is no reasonable built-in substitute.
+
+---
+
+## Test-Driven Development (TDD) Policy
+
+**All new schema, transpiler, and tool code must ship with Vitest unit tests.**
+Do not push implementation changes without corresponding tests. The sequence is:
+
+1. **Write tests first** (or at the same time as the implementation) in the appropriate `__tests__/` directory.
+2. **Run `make test`** inside the container to verify everything passes before committing.
+3. **Run `make cmake-test`** for any C kernel changes.
+4. **Run `make typecheck`** to confirm zero TypeScript errors.
+
+### Test locations
+
+| Code changed | Test file location |
+|---|---|
+| `packages/core/src/schema/` | `packages/core/src/__tests__/` |
+| `packages/core/src/transpilers/` | `packages/core/src/__tests__/` |
+| `packages/core/src/elements/` | `packages/core/src/__tests__/` |
+| `packages/core/src/agent/` | `packages/core/src/__tests__/` |
+| `packages/mcp-server/src/tools/` | `packages/mcp-server/src/__tests__/` |
+| `packages/sim-kernel/` (C) | `packages/sim-kernel/tests/` (CTest) |
+
+### Playwright / browser UI tests
+
+Browser-level testing of diagram output and the DSEE demo uses Playwright.
+Run with:
+
+```bash
+# From inside the container shell (make shell)
+npx playwright test
+```
+
+Playwright tests live in `examples/dsee-demo/tests/` and cover:
+- The DSEE chat round-trip (model generation → validation → diagram render)
+- PDF print-to-PDF button presence and activation
+- Mermaid diagram rendering for each supported view
+
+If Playwright tests do not yet exist for a new UI feature, create them before merging.
 
 ---
 
