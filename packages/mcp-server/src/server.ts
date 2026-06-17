@@ -15,6 +15,7 @@ import { assembleModel, assembleModelSchema }               from './tools/assemb
 import { computeEmergyTool, computeEmergySchema }           from './tools/compute-emergy.js';
 import { transpileSysml, transpileSysmlSchema }             from './tools/transpile-sysml.js';
 import { verifyRequirementsTool, verifyRequirementsSchema } from './tools/verify-requirements.js';
+import { computePiGroupsTool, computePiGroupsSchema }     from './tools/compute-pi-groups.js';
 
 export function createMdkServer(): MdkServer {
   const server = new MdkServer();
@@ -115,6 +116,13 @@ export function createMdkServer(): MdkServer {
     'Check SysML RequirementUsage constraints against simulation results (PASS/FAIL report)',
     zodSchemaToInputSchema(verifyRequirementsSchema),
     async (args) => verifyRequirementsTool(args as Parameters<typeof verifyRequirementsTool>[0]),
+  );
+
+  server.tool(
+    'compute_pi_groups',
+    'Compute Buckingham π dimensionless groups from a FunctionalModel or variable list — step 3 of DACM dimensional decomposition',
+    zodSchemaToInputSchema(computePiGroupsSchema),
+    async (args) => computePiGroupsTool(args as Parameters<typeof computePiGroupsTool>[0]),
   );
 
   return server;

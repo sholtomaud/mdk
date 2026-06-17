@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export const generateDiagramSchema = {
-  model_json: z.string().describe('SysmlPackage, BondGraphModel, or OdumEslModel JSON'),
-  view: z.enum(['bdd','ibd','par','pkg','seq','act','uc','stm','req','bg','esl','all'])
+  model_json: z.string().describe('SysmlPackage, BondGraphModel, OdumEslModel, or FunctionalModel JSON'),
+  view: z.enum(['bdd','ibd','par','pkg','seq','act','uc','stm','req','bg','esl','dcg','all'])
     .default('all')
-    .describe('"all" returns every applicable view labelled by type'),
+    .describe('"all" returns every applicable view; "dcg" = DACM directed causal graph (FunctionalModel only)'),
   format: z.enum(['mermaid','dot']).default('mermaid'),
 };
 
@@ -583,10 +583,95 @@ function buildBddDot(elements: Elem[]): string {
   return lines.join('\n');
 }
 
+/* ── DACM Directed Causal Graph ───────────────────────────────────── */
+
+/* Minimal structural types for FunctionalModel (avoids importing @mdk/core) */
+interface DcgVar  { id: string; name: string; symbol?: string; unit?: string; role?: string }
+interface DcgFn   { id: string; name: string; organ?: string; variables?: DcgVar[] }
+interface DcgSub  { id: string; name: string; functions: DcgFn[]; connectorType?: string; connectedTo?: string[] }
+interface DcgModel { name: string; subsystems: DcgSub[] }
+
+function buildDCG(model: DcgModel): string {
+  const lines: string[] = [
+    `%%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '13px' }}}%%`,
+    `graph TD`,
+    ...VAR_ROLE_CLASSDEFS,
+    `  classDef organ fill:#fef3c7,stroke:#d97706,color:#78350f`,
+    `  classDef connector fill:#e0e7ff,stroke:#6366f1,color:#312e81`,
+  ];
+
+  /* Track emitted variable node IDs to avoid duplicates across subsystems */
+  const emittedVars = new Set<string>();
+
+  for (const sub of model.subsystems) {
+    const subId = `sub_${san(sub.id)}`;
+    lines.push(`  subgraph ${subId}["${sub.name}"]`);
+    lines.push(`    direction TD`);
+
+    /* Variable nodes */
+    for (const fn of sub.functions) {
+      for (const v of (fn.variables ?? [])) {
+        if (emittedVars.has(v.id)) continue;
+        emittedVars.add(v.id);
+        const role = v.role ?? 'dependent';
+        const label = (v.symbol ?? v.name) + (v.unit ? ` [${v.unit}]` : '');
+        const nodeId = san(v.id);
+        const roleClass = `:::${role}`;
+        if (role === 'independent') {
+          lines.push(`    ${nodeId}(["${label}"])${roleClass}`);
+        } else if (role === 'exogenous') {
+          lines.push(`    ${nodeId}["${label}"]${roleClass}`);
+        } else if (role === 'performance') {
+          lines.push(`    ${nodeId}{{"${label}"}}${roleClass}`);
+        } else {
+          lines.push(`    ${nodeId}["${label}"]${roleClass}`);
+        }
+      }
+    }
+
+    /* Function (organ) nodes and causal edges */
+    for (const fn of sub.functions) {
+      const fnId = `fn_${san(fn.id)}`;
+      const organ = fn.organ ?? 'R';
+      lines.push(`    ${fnId}(("${organ}:${fn.name}")):::organ`);
+
+      for (const v of (fn.variables ?? [])) {
+        const role = v.role ?? 'dependent';
+        const nodeId = san(v.id);
+        if (role === 'independent') {
+          lines.push(`    ${nodeId} --> ${fnId}`);
+        } else if (role === 'exogenous') {
+          lines.push(`    ${nodeId} -.-> ${fnId}`);
+        } else {
+          lines.push(`    ${fnId} --> ${nodeId}`);
+        }
+      }
+    }
+
+    lines.push(`  end`);
+  }
+
+  /* Inter-subsystem connector edges (drawn outside subgraphs) */
+  for (const sub of model.subsystems) {
+    for (const tgtId of (sub.connectedTo ?? [])) {
+      const connType = sub.connectorType ?? 'CTF';
+      /* Use last function of source and first function of target as anchor nodes */
+      const srcFn = sub.functions[sub.functions.length - 1];
+      const tgtSub = model.subsystems.find(s => s.id === tgtId);
+      const tgtFn  = tgtSub?.functions[0];
+      if (srcFn && tgtFn) {
+        lines.push(`  fn_${san(srcFn.id)} -->|${connType}| fn_${san(tgtFn.id)}:::connector`);
+      }
+    }
+  }
+
+  return '```mermaid\n' + lines.join('\n') + '\n```';
+}
+
 /* ── Main tool function ───────────────────────────────────────────── */
 
 export async function generateDiagram(
-  { model_json, view, format }: { model_json: string; view: 'bdd'|'ibd'|'par'|'pkg'|'seq'|'act'|'uc'|'stm'|'req'|'bg'|'esl'|'all'; format: 'mermaid' | 'dot' },
+  { model_json, view, format }: { model_json: string; view: 'bdd'|'ibd'|'par'|'pkg'|'seq'|'act'|'uc'|'stm'|'req'|'bg'|'esl'|'dcg'|'all'; format: 'mermaid' | 'dot' },
 ): Promise<string> {
   let parsed: Record<string, unknown>;
   try {
@@ -596,9 +681,10 @@ export async function generateDiagram(
   }
 
   // Detect model type
-  const isSysml = parsed['@type'] === 'Package';
-  const isBg = parsed.domain === 'bondgraph';
-  const isOdum = parsed.domain === 'odum-esl';
+  const isSysml       = parsed['@type'] === 'Package';
+  const isBg          = parsed.domain === 'bondgraph';
+  const isOdum        = parsed.domain === 'odum-esl';
+  const isFunctional  = parsed.domain === 'functional';
 
   if (isSysml) {
     const elements = (parsed.elements ?? []) as Elem[];
@@ -721,6 +807,14 @@ export async function generateDiagram(
       return eslDiag;
     }
     return eslDiag;
+  }
+
+  if (isFunctional) {
+    const model = parsed as unknown as DcgModel;
+    const dcgDiag = buildDCG(model);
+
+    if (view === 'dcg' || view === 'all') return dcgDiag;
+    return dcgDiag;
   }
 
   // Fallback: legacy BG-style with elements/bonds or nodes/edges

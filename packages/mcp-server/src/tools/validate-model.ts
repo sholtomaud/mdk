@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { validateBondGraph, BondGraphModel, OdumEslModel, odumToBondGraph } from '@mdk/core';
+import { validateBondGraph, BondGraphModel, OdumEslModel, FunctionalModel, odumToBondGraph } from '@mdk/core';
 import { type Stage, zodIssues } from './stages.js';
 
 export const validateModelSchema = {
@@ -19,8 +19,33 @@ export async function validateModel({ model_json }: { model_json: string }): Pro
     return JSON.stringify({ valid: false, stages });
   }
 
-  const isBg = typeof parsed === 'object' && parsed !== null &&
-    (parsed as Record<string, unknown>).domain === 'bondgraph';
+  const domain = typeof parsed === 'object' && parsed !== null
+    ? (parsed as Record<string, unknown>).domain as string | undefined
+    : undefined;
+
+  /* ══ FunctionalModel (DACM) path ════════════════════════════════════ */
+  if (domain === 'functional') {
+    const schemaResult = FunctionalModel.safeParse(parsed);
+    stages.push({
+      name:   'Zod FunctionalModel',
+      pass:   schemaResult.success,
+      issues: schemaResult.success ? [] : zodIssues(schemaResult.error),
+    });
+    const subCount = schemaResult.success ? schemaResult.data.subsystems.length : 0;
+    const fnCount  = schemaResult.success
+      ? schemaResult.data.subsystems.reduce((acc, s) => acc + s.functions.length, 0)
+      : 0;
+    if (schemaResult.success) {
+      stages.push({
+        name: 'FunctionalModel structural check',
+        pass: true,
+        note: `${subCount} subsystem(s), ${fnCount} function(s)`,
+      });
+    }
+    return JSON.stringify({ valid: schemaResult.success, domain: 'functional', stages }, null, 2);
+  }
+
+  const isBg = domain === 'bondgraph';
 
   if (isBg) {
     /* ── Stage 2: Zod BondGraphModel ─────────────────────────────── */

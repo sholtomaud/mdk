@@ -16,6 +16,10 @@ export type {
   SiDimensions as SiDimensionsType,
 } from './schema/dacm.js';
 
+/* ── Buckingham π-theorem (dimensional analysis) ─────────────────── */
+export { computePiGroups, computePiGroupsFromModel } from './analysis/buckingham-pi.js';
+export type { PiGroup, PiGroupResult } from './analysis/buckingham-pi.js';
+
 /* ── Base element types ──────────────────────────────────────────── */
 export { Element, PowerBond } from './elements/base.js';
 export type { PhysicalDomain, VisualMeta } from './elements/base.js';
