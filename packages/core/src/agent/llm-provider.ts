@@ -11,6 +11,7 @@ export interface ExplainOpts {
   validationResult: string;
   simResult: string;
   verifyResult?: string;
+  bomResult?: string;
 }
 
 export interface LlmProvider {

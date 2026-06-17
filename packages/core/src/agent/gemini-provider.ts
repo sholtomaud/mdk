@@ -5,8 +5,10 @@ const GEMINI_MODEL = 'gemini-3-flash-preview';
 
 const EXPLAIN_SYSTEM = `You are a concise MDK modelling assistant. Given the user's description and MDK pipeline results, write 2-3 sentences explaining:
 - What physical phenomenon and energy domain(s) the model captures
-- What the simulation reveals and whether formal requirements were met
-- Key highlights from the Bill of Materials or emergy analysis
+- What the simulation reveals (cite the actual computed values provided — e.g. τ, final state, RMS error)
+- Whether formal requirements PASSED or FAILED (cite each requirement result verbatim, not "requirements met")
+- Element count and BOM summary from the data provided
+RULES: Only cite values that appear in the pipeline data. Never invent numbers. If a value is missing, say so.
 Be technically accurate but brief. Do not reproduce the diagram or list components.`;
 
 function postGemini(apiKey: string, payload: object): Promise<Record<string, unknown>> {
@@ -304,7 +306,19 @@ Domain mapping examples:
   Hydrological: rainfall=Se, evapotranspiration=R, soil water store=C
 
 Use sourceFeature/targetFeature on FlowConnectionUsage to reference port @id values.
-If physical parameter values are unknown, include a "missing_parameters" array.${correctionSection}${socraticSection}`;
+If physical parameter values are unknown, include a "missing_parameters" array.
+
+REQUIREMENTS — every RequirementUsage MUST have a "constraint" field with a BEHAVIOURAL constraint, not a structural one.
+Use the DSL: func(state_variable) op threshold  OR  func(state_variable) within tolerance of reference
+  Functions: max, min, final, tau, exp_rms
+  Operators: <, <=, >, >=, ==
+State variable names follow the pattern: q_<ElementName> for C elements, p_<ElementName> for I elements.
+Examples of GOOD constraints:
+  "tau(q_Capacitor) within 0.1 of 1.0"        — time constant within 10% of 1s
+  "final(q_Capacitor) >= 9.0"                  — charges to at least 90% of source
+  "exp_rms(q_Capacitor) < 0.02"               — simulation fits exponential with < 2% normalized RMS
+  "max(q_SoilWater) < 0.95"                   — soil never saturates
+AVOID structural tautologies like "VoltageSource shall model Se element" — those are not verifiable constraints.${correctionSection}${socraticSection}`;
   }
   if (domain === 'bondgraph') {
     return `You are an expert Bond Graph modelling assistant for MDK. Generate a valid Bond Graph JSON model. Elements must have correct types (Se/Sf/R/C/I/TF/GY/J0/J1/MTF/MGY/CTF). Ensure causal consistency: every junction must have exactly one effort-setting bond. Use MTF for modulated transformers, MGY for modulated gyrators, and CTF for control transformers (connecting variables with arbitrary causality).`;
@@ -355,10 +369,11 @@ export class GeminiProvider implements LlmProvider {
   async explain(opts: ExplainOpts): Promise<string> {
     const contextParts = [
       `User: "${opts.userMessage}"`,
-      `Validation: ${opts.validationResult.slice(0, 300)}`,
-      `Simulation: ${opts.simResult.slice(0, 300)}`,
+      `Validation: ${opts.validationResult.slice(0, 400)}`,
+      `Simulation: ${opts.simResult.slice(0, 400)}`,
     ];
-    if (opts.verifyResult) contextParts.push(`Requirements: ${opts.verifyResult.slice(0, 200)}`);
+    if (opts.verifyResult) contextParts.push(`Requirements: ${opts.verifyResult.slice(0, 400)}`);
+    if (opts.bomResult)    contextParts.push(`BOM: ${opts.bomResult.slice(0, 300)}`);
 
     const raw = await postGemini(this.apiKey, {
       system_instruction: { parts: [{ text: EXPLAIN_SYSTEM }] },

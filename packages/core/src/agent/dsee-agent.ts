@@ -179,6 +179,7 @@ export class DseeAgent {
       validationResult: lastValidateResult ?? '',
       simResult,
       verifyResult: verifyResult ?? undefined,
+      bomResult:    bomResult ?? undefined,
     }).catch(() => 'SysML → Bond Graph model generated.');
 
     return {
@@ -293,13 +294,14 @@ export class DseeAgent {
     }
 
     /* ── Requirements ────────────────────────────────────────────── */
+    let streamVerifyResult: string | undefined;
     if (tools.verifyRequirements && sysmlJson) {
       yield { type: 'status', message: 'Verifying requirements…', actor: 'MDK' };
       try {
         const simData = JSON.parse(simResult) as { simulation?: unknown };
         if (simData.simulation) {
-          const verifyResult = await tools.verifyRequirements(sysmlJson, JSON.stringify(simData.simulation));
-          yield { type: 'tool', toolCall: { name: 'verify_requirements', args: {}, result: verifyResult } };
+          streamVerifyResult = await tools.verifyRequirements(sysmlJson, JSON.stringify(simData.simulation));
+          yield { type: 'tool', toolCall: { name: 'verify_requirements', args: {}, result: streamVerifyResult } };
         }
       } catch { /* skip */ }
     }
@@ -310,6 +312,8 @@ export class DseeAgent {
       userMessage: description,
       validationResult: lastValidateResult ?? '',
       simResult,
+      verifyResult: streamVerifyResult,
+      bomResult:    bomResult ?? undefined,
     }).catch(() => 'SysML → Bond Graph model generated.');
     yield { type: 'reply', text: replyText };
   }
