@@ -15,6 +15,6 @@
   "keywords": ["mdk", "bond-graph", "odum-esl", "web-component", "diagram"],
   "license": "MIT",
   "devDependencies": {
-    "vite": "^5.4.2"
+    "vite": "^8.0.16"
   }
 }
