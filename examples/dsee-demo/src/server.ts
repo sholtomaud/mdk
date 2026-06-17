@@ -38,6 +38,8 @@ function readBody(req: http.IncomingMessage): Promise<string> {
 
 const server = http.createServer(async (req, res) => {
   const url = req.url ?? '/';
+  const ts  = new Date().toISOString();
+  process.stderr.write(`[http] ${req.method} ${url.split('?')[0]} ${ts}\n`);
 
   /* ── GET /chat-stream (SSE) ───────────────────────────────── */
   if (req.method === 'GET' && url.startsWith('/chat-stream')) {
@@ -63,18 +65,22 @@ const server = http.createServer(async (req, res) => {
       'access-control-allow-origin': '*',
     });
 
-    const send = (event: object) => {
+    let evCount = 0;
+    const send = (event: object & { type?: string }) => {
       res.write(`data: ${JSON.stringify(event)}\n\n`);
+      process.stderr.write(`[sse] → ${event.type ?? '?'} (#${++evCount})\n`);
     };
 
     try {
       for await (const event of chatStream(history, message, socraticAnswers, correctionJson)) {
-        send(event);
+        send(event as object & { type?: string });
       }
     } catch (e) {
+      process.stderr.write(`[sse] stream error: ${String(e)}\n`);
       send({ type: 'error', message: String(e) });
     } finally {
       res.write('data: {"type":"done"}\n\n');
+      process.stderr.write(`[sse] done (${evCount} events)\n`);
       res.end();
     }
     return;

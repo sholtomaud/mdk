@@ -12,9 +12,15 @@ class MdkMcpClient {
   private initialized = false;
 
   constructor(serverScript: string) {
+    process.stderr.write(`[mcp] spawning MCP server: ${serverScript}\n`);
     this.proc = child_process.spawn('node', [serverScript], {
       env: { ...process.env } as Record<string, string>,
-      stdio: ['pipe', 'pipe', 'inherit'],
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
+    // Forward MCP server stderr to our stderr with prefix
+    this.proc.stderr?.on('data', (chunk: Buffer) => {
+      process.stderr.write(`[mcp-server] ${chunk.toString().trimEnd()}\n`);
     });
 
     this.rl = readline.createInterface({ input: this.proc.stdout!, terminal: false });
@@ -54,6 +60,7 @@ class MdkMcpClient {
       const timer = setTimeout(() => {
         if (this.pending.has(id)) {
           this.pending.delete(id);
+          process.stderr.write(`[mcp] TIMEOUT id=${id} method=${method} (120s)\n`);
           reject(new Error(`Timeout waiting for response to ${method}`));
         }
       }, 120_000);
@@ -79,9 +86,12 @@ class MdkMcpClient {
 
   async callTool(name: string, args: Record<string, unknown>): Promise<string> {
     await this.initialize();
+    const t0 = Date.now();
+    process.stderr.write(`[mcp] → ${name}\n`);
     const result = await this.send('tools/call', { name, arguments: args }) as {
       content: Array<{ type: string; text?: string }>;
     };
+    process.stderr.write(`[mcp] ← ${name} (${Date.now() - t0}ms)\n`);
     return (result.content ?? []).map(c => c.text ?? '').join('');
   }
 

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import * as https from 'https';
 import type { LlmProvider, GenerateModelOpts, ExplainOpts } from './llm-provider.js';
 
@@ -11,9 +12,12 @@ const EXPLAIN_SYSTEM = `You are a concise MDK modelling assistant. Given the use
 RULES: Only cite values that appear in the pipeline data. Never invent numbers. If a value is missing, say so.
 Be technically accurate but brief. Do not reproduce the diagram or list components.`;
 
+const GEMINI_TIMEOUT_MS = 60_000;
+
 function postGemini(apiKey: string, payload: object): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify(payload);
+    const t0   = Date.now();
     const req = https.request(
       {
         hostname: 'generativelanguage.googleapis.com',
@@ -23,8 +27,10 @@ function postGemini(apiKey: string, payload: object): Promise<Record<string, unk
           'content-type': 'application/json',
           'content-length': Buffer.byteLength(body),
         },
+        timeout: GEMINI_TIMEOUT_MS,
       },
       (res) => {
+        process.stderr.write(`[gemini] HTTP ${res.statusCode} after ${Date.now() - t0}ms\n`);
         const chunks: Buffer[] = [];
         res.on('data', (c: Buffer) => chunks.push(c));
         res.on('end', () => {
@@ -33,7 +39,15 @@ function postGemini(apiKey: string, payload: object): Promise<Record<string, unk
         });
       },
     );
-    req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error(`Gemini API timed out after ${GEMINI_TIMEOUT_MS / 1000}s`));
+    });
+    req.on('error', (err: Error) => {
+      process.stderr.write(`[gemini] request error: ${err.message}\n`);
+      reject(err);
+    });
+    process.stderr.write(`[gemini] POST ${GEMINI_MODEL} (${body.length} bytes)\n`);
     req.write(body);
     req.end();
   });
