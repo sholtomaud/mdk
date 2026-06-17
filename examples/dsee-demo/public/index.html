@@ -303,6 +303,39 @@
       padding: 6px 16px;
       font-size: 0.8rem;
     }
+
+    /* ─── Print / PDF Report ───────────────────────────────────── */
+    #report { display: none; }
+
+    @media print {
+      header, #messages, #input-row { display: none !important; }
+      body { background: #fff !important; color: #000 !important; }
+      #report {
+        display: block !important;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 11pt;
+        line-height: 1.5;
+        color: #000;
+        padding: 0;
+      }
+      .rpt-header { margin-bottom: 24px; border-bottom: 2px solid #000; padding-bottom: 12px; }
+      .rpt-title { font-size: 20pt; font-weight: bold; margin: 0 0 6px; }
+      .rpt-meta { font-size: 9pt; color: #555; margin: 0 0 8px; }
+      .rpt-prompt { font-style: italic; border-left: 3px solid #999; padding-left: 10px; color: #222; margin: 0; }
+      .rpt-section { margin-bottom: 24px; page-break-inside: avoid; }
+      .rpt-section h2 { font-size: 13pt; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 3px; margin: 0 0 10px; }
+      .rpt-table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 6px 0; }
+      .rpt-table th { background: #f0f0f0; text-align: left; padding: 4px 8px; border: 1px solid #bbb; font-weight: 600; }
+      .rpt-table td { padding: 4px 8px; border: 1px solid #bbb; }
+      .rpt-table tr:nth-child(even) td { background: #fafafa; }
+      .rpt-pass { color: #166534; font-weight: 600; }
+      .rpt-fail { color: #991b1b; font-weight: 600; }
+      .rpt-diagram { margin: 10px 0; page-break-inside: avoid; }
+      .rpt-diagram svg { max-width: 100% !important; height: auto !important; }
+      .rpt-explanation { font-size: 11pt; line-height: 1.7; }
+      .rpt-footer { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 8px; font-size: 8pt; color: #888; }
+      @page { margin: 2cm; size: A4 portrait; }
+    }
   </style>
 </head>
 <body>
@@ -330,6 +363,8 @@
     <textarea id="input" rows="1" placeholder="Describe a system to model…"></textarea>
     <button id="send" onclick="sendMessage()">Send</button>
   </div>
+
+  <div id="report"></div>
 
   <script>
     mermaid.initialize({ startOnLoad: false, theme: 'default' });
@@ -897,6 +932,151 @@
       return form;
     }
 
+    async function printReport(r) {
+      const reportEl = document.getElementById('report');
+      const ts = new Date(r.timestamp).toLocaleString();
+      let secNum = 0;
+      const sec = (title, body) => `<div class="rpt-section"><h2>${++secNum}. ${title}</h2>${body}</div>`;
+
+      let html = `
+        <div class="rpt-header">
+          <div class="rpt-title">MDK Model Report</div>
+          <div class="rpt-meta">Generated ${ts} &nbsp;·&nbsp; MDK v${r.mdk_version}</div>
+          <div class="rpt-prompt">${escapeHtml(r.prompt)}</div>
+        </div>`;
+
+      if (r.model) {
+        const m = r.model;
+        const els = m.elements ?? m.nodes ?? [];
+        const bds = m.bonds ?? m.edges ?? [];
+        const typeCounts = {};
+        for (const el of els) typeCounts[el.type] = (typeCounts[el.type] ?? 0) + 1;
+        const typeStr = Object.entries(typeCounts).map(([t, n]) => `${n}×${t}`).join(', ') || '—';
+        const cfg = m.config;
+        html += sec('Model', `
+          <table class="rpt-table">
+            <tr><th>Domain</th><td>${escapeHtml(m.domain ?? m.name ?? '?')}</td></tr>
+            <tr><th>Elements</th><td>${els.length} &nbsp;(${escapeHtml(typeStr)})</td></tr>
+            <tr><th>Bonds / Edges</th><td>${bds.length}</td></tr>
+            ${cfg ? `<tr><th>Simulation Config</th><td>t = [${cfg.t_start ?? 0}, ${cfg.t_end ?? '?'}] &nbsp; dt = ${cfg.dt ?? '?'} &nbsp; method: ${cfg.method ?? '?'}</td></tr>` : ''}
+          </table>`);
+      }
+
+      if (r.validation) {
+        const v = r.validation;
+        const stages = v.stages ?? [];
+        const allPass = stages.length > 0 && stages.every(s => s.pass);
+        html += sec('Model Validation (SCAP)', `
+          <p class="${allPass ? 'rpt-pass' : 'rpt-fail'}">${allPass ? '✓ All stages passed — causality valid' : '✗ Validation failed'}</p>
+          ${v.domain ? `<p style="font-size:9pt;color:#555;margin-top:4px">Domain: ${escapeHtml(v.domain)}</p>` : ''}
+          ${stages.length ? `<table class="rpt-table" style="margin-top:8px">
+            <tr><th>Stage</th><th>Result</th><th>Note</th></tr>
+            ${stages.map(s => `<tr>
+              <td>${escapeHtml(s.name)}</td>
+              <td class="${s.pass ? 'rpt-pass' : 'rpt-fail'}">${s.pass ? 'PASS' : 'FAIL'}</td>
+              <td style="font-size:8pt">${escapeHtml(s.note ?? '')}</td>
+            </tr>`).join('')}
+          </table>` : ''}`);
+      }
+
+      for (const sim of (r.simulations ?? [])) {
+        if (!sim?.time?.length) continue;
+        const svNames = sim.state_variables ?? [];
+        const timeArr = sim.time;
+        const dataMat = sim.data ?? [];
+        const steps = timeArr.length;
+        html += sec('Simulation', `
+          <p style="font-size:9pt;color:#555">t = [${timeArr[0].toFixed(3)}, ${timeArr[steps-1].toFixed(3)}] &nbsp;·&nbsp; ${steps} steps &nbsp;·&nbsp; ${svNames.length} state variable${svNames.length !== 1 ? 's' : ''}</p>
+          <table class="rpt-table" style="margin-top:8px">
+            <tr><th>State Variable</th><th>t = 0</th><th>t = end</th><th>Min</th><th>Max</th></tr>
+            ${svNames.map((name, si) => {
+              const series = dataMat[si] ?? [];
+              const fin = series.filter(Number.isFinite);
+              const fmt = v => Number.isFinite(v) ? v.toExponential(3) : '—';
+              return `<tr>
+                <td>${escapeHtml(name)}</td>
+                <td>${fmt(series[0])}</td><td>${fmt(series[steps-1])}</td>
+                <td>${fin.length ? Math.min(...fin).toExponential(3) : '—'}</td>
+                <td>${fin.length ? Math.max(...fin).toExponential(3) : '—'}</td>
+              </tr>`;
+            }).join('')}
+          </table>`);
+      }
+
+      if (r.diagramMermaid?.length) {
+        html += sec('System Diagram',
+          r.diagramMermaid.map((_, i) => `<div class="rpt-diagram" data-diagram="${i}"></div>`).join(''));
+      }
+
+      if (r.bom) {
+        const bom = r.bom.bom ?? [];
+        html += sec('Bill of Materials', `
+          <table class="rpt-table">
+            <tr><th>System</th><th>Element</th><th>Type</th><th>Parameter</th><th>Status</th></tr>
+            ${bom.map(item => `<tr>
+              <td>${escapeHtml(item.systemName ?? '')}</td>
+              <td>${escapeHtml(item.elementName ?? '')}</td>
+              <td>${escapeHtml(item.elementType ?? '')}</td>
+              <td>${escapeHtml(String(item.parameter ?? ''))}</td>
+              <td>${item.isPending ? '<span class="rpt-fail">Pending</span>' : '<span class="rpt-pass">Ready</span>'}</td>
+            </tr>`).join('')}
+          </table>
+          <p style="font-size:9pt;color:#555;margin-top:6px">Total: ${bom.length} items &nbsp;·&nbsp; ${bom.filter(i => i.isPending).length} pending</p>`);
+      }
+
+      if (r.requirements) {
+        const req = r.requirements;
+        const results = req.results ?? [];
+        html += sec('Requirements Verification', `
+          <p class="${req.passed ? 'rpt-pass' : 'rpt-fail'}" style="margin-bottom:8px">${req.passed ? '✓ All requirements passed' : '✗ Requirements failed'}</p>
+          ${results.length ? `<table class="rpt-table">
+            <tr><th>Requirement</th><th>Result</th><th>Detail</th></tr>
+            ${results.map(res => `<tr>
+              <td>${escapeHtml(res.requirementName ?? '')}</td>
+              <td class="${res.passed ? 'rpt-pass' : 'rpt-fail'}">${res.passed ? 'PASS' : 'FAIL'}</td>
+              <td style="font-size:8.5pt">${escapeHtml(res.message ?? '')}</td>
+            </tr>`).join('')}
+          </table>` : `<p style="font-size:9pt;color:#555">${escapeHtml(req.message ?? 'No requirements to verify.')}</p>`}`);
+      }
+
+      if (r.emergy) {
+        const em = r.emergy;
+        const rows = Array.isArray(em.emergy) ? em.emergy : Array.isArray(em.results) ? em.results : null;
+        html += sec('Emergy Analysis', rows ? `
+          <table class="rpt-table">
+            <tr><th>Element</th><th>Emergy (sej)</th><th>Type</th></tr>
+            ${rows.map(row => `<tr>
+              <td>${escapeHtml(row.element ?? row.name ?? '')}</td>
+              <td>${row.emergy?.toExponential(3) ?? row.value ?? '—'}</td>
+              <td>${escapeHtml(row.type ?? '')}</td>
+            </tr>`).join('')}
+          </table>` :
+          `<pre style="font-size:8pt;white-space:pre-wrap">${escapeHtml(JSON.stringify(em, null, 2))}</pre>`);
+      }
+
+      if (r.reply) {
+        html += sec('Explanation', `<p class="rpt-explanation">${escapeHtml(r.reply)}</p>`);
+      }
+
+      html += `<div class="rpt-footer">Generated by MDK — Model Development Kit &nbsp;·&nbsp; ${ts}${r.duration_ms ? ` &nbsp;·&nbsp; Pipeline: ${(r.duration_ms/1000).toFixed(1)}s` : ''}</div>`;
+
+      reportEl.innerHTML = html;
+
+      for (const [i, src] of (r.diagramMermaid ?? []).entries()) {
+        const placeholder = reportEl.querySelector(`[data-diagram="${i}"]`);
+        if (!placeholder) continue;
+        try {
+          const { svg } = await mermaid.render('rpt-diag-' + i + '-' + Date.now(), src);
+          placeholder.innerHTML = svg;
+        } catch {
+          placeholder.innerHTML = `<pre style="font-size:8pt;white-space:pre-wrap">${escapeHtml(src)}</pre>`;
+        }
+      }
+
+      window.print();
+      window.addEventListener('afterprint', () => { reportEl.innerHTML = ''; }, { once: true });
+    }
+
     async function sendMessage(socraticAnswers = null) {
       const input = document.getElementById('input');
       const btn   = document.getElementById('send');
@@ -952,14 +1132,22 @@
 
       // Initialise debug report
       currentReport = {
-        _start:     Date.now(),
-        timestamp:  new Date().toISOString(),
-        prompt:     message,
-        mdk_version: '0.1.0',
-        pipeline:   [],  // { type, actor?, message?, toolCall? }
-        reply:      '',
-        errors:     [],
-        duration_ms: 0,
+        _start:       Date.now(),
+        timestamp:    new Date().toISOString(),
+        prompt:       message,
+        mdk_version:  '0.1.0',
+        pipeline:     [],
+        reply:        '',
+        errors:       [],
+        duration_ms:  0,
+        // structured fields for print report
+        model:        null,
+        validation:   null,
+        simulations:  [],
+        diagramMermaid: [],
+        bom:          null,
+        emergy:       null,
+        requirements: null,
       };
 
       const url = `/chat-stream?message=${encodeURIComponent(message)}&history=${encodeURIComponent(JSON.stringify(history))}${socraticAnswers ? '&socratic_answers=' + encodeURIComponent(socraticAnswers) : ''}${correctionParam}`;
@@ -987,6 +1175,22 @@
               }
             } catch { resultParsed = ev.toolCall.result; }
             currentReport.pipeline.push({ type: 'tool', name: ev.toolCall.name, args: ev.toolCall.args, result: resultParsed });
+            // structured capture for print report
+            const tn = ev.toolCall.name;
+            if ((tn === 'create_model' || tn === 'transpile_sysml') && resultParsed) {
+              currentReport.model = resultParsed.model ?? (resultParsed.error ? null : resultParsed);
+            }
+            if (tn === 'validate_model' && resultParsed) currentReport.validation = resultParsed;
+            if (tn.startsWith('run_simulation') && resultParsed?.simulation) currentReport.simulations.push(resultParsed.simulation);
+            if (tn === 'generate_diagram') {
+              const raw = typeof ev.toolCall.result === 'string' ? ev.toolCall.result : JSON.stringify(ev.toolCall.result ?? '');
+              const re = /```mermaid\n([\s\S]+?)```/g;
+              let mm;
+              while ((mm = re.exec(raw)) !== null) currentReport.diagramMermaid.push(mm[1].trim());
+            }
+            if (tn === 'generate_bom' && resultParsed) currentReport.bom = resultParsed;
+            if (tn === 'compute_emergy' && resultParsed) currentReport.emergy = resultParsed;
+            if (tn === 'verify_requirements' && resultParsed) currentReport.requirements = resultParsed;
         } else if (ev.type === 'reply') {
           bubble.textContent = ev.message || ev.text || '';
           history.push({ role: 'user',  parts: [{ text: message }] });
@@ -1023,20 +1227,31 @@
           btn.textContent = 'Send';
           input.focus();
 
-          // Render download button
+          // Render download / print buttons
           if (currentReport) {
             currentReport.duration_ms = Date.now() - currentReport._start;
             delete currentReport._start;
             const report = currentReport;
+
+            // JSON debug download
             const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-            const url  = URL.createObjectURL(blob);
-            const ts   = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            const a    = document.createElement('a');
+            const blobUrl = URL.createObjectURL(blob);
+            const ts  = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const a   = document.createElement('a');
             a.className = 'dl-btn';
-            a.href      = url;
+            a.href      = blobUrl;
             a.download  = `mdk-debug-${ts}.json`;
-            a.innerHTML = '⬇ Download debug report';
+            a.innerHTML = '⬇ Debug JSON';
             toolsDiv.appendChild(a);
+
+            // Print-to-PDF button
+            const printBtn = document.createElement('span');
+            printBtn.className = 'dl-btn';
+            printBtn.style.marginLeft = '8px';
+            printBtn.innerHTML = '🖨 Print as PDF';
+            printBtn.onclick = () => printReport(report);
+            toolsDiv.appendChild(printBtn);
+
             wrap.scrollIntoView({ behavior: 'smooth', block: 'end' });
           }
         }
